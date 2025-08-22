@@ -1,0 +1,106 @@
+import { renderHook, act } from '@testing-library/react';
+import { useDebounce } from './useDebounce';
+
+describe('useDebounce', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
+
+  it('retorna o valor inicial imediatamente', () => {
+    const { result } = renderHook(() => useDebounce('initial', 500));
+    expect(result.current).toBe('initial');
+  });
+
+  it('atualiza o valor após o delay especificado', () => {
+    const { result, rerender } = renderHook(
+      ({ value, delay }) => useDebounce(value, delay),
+      { initialProps: { value: 'initial', delay: 500 } }
+    );
+
+    expect(result.current).toBe('initial');
+
+    // Atualiza o valor
+    rerender({ value: 'updated', delay: 500 });
+
+    // Ainda deve ser o valor inicial
+    expect(result.current).toBe('initial');
+
+    // Avança o tempo
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
+
+    // Agora deve ser o valor atualizado
+    expect(result.current).toBe('updated');
+  });
+
+  it('cancela o timer anterior quando o valor muda rapidamente', () => {
+    const { result, rerender } = renderHook(
+      ({ value }) => useDebounce(value, 500),
+      { initialProps: { value: 'initial' } }
+    );
+
+    // Múltiplas atualizações rápidas
+    rerender({ value: 'update1' });
+    act(() => {
+      jest.advanceTimersByTime(200);
+    });
+
+    rerender({ value: 'update2' });
+    act(() => {
+      jest.advanceTimersByTime(200);
+    });
+
+    rerender({ value: 'final' });
+
+    // Ainda deve ser o valor inicial
+    expect(result.current).toBe('initial');
+
+    // Avança o tempo completo
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
+
+    // Deve ter apenas o valor final
+    expect(result.current).toBe('final');
+  });
+
+  it('usa delay padrão de 300ms quando não especificado', () => {
+    const { result, rerender } = renderHook(({ value }) => useDebounce(value), {
+      initialProps: { value: 'initial' },
+    });
+
+    rerender({ value: 'updated' });
+
+    act(() => {
+      jest.advanceTimersByTime(299);
+    });
+    expect(result.current).toBe('initial');
+
+    act(() => {
+      jest.advanceTimersByTime(1);
+    });
+    expect(result.current).toBe('updated');
+  });
+
+  it('funciona com diferentes tipos de dados', () => {
+    // Number
+    const { result: numberResult } = renderHook(() => useDebounce(42, 100));
+    expect(numberResult.current).toBe(42);
+
+    // Object
+    const obj = { name: 'test' };
+    const { result: objectResult } = renderHook(() => useDebounce(obj, 100));
+    expect(objectResult.current).toBe(obj);
+
+    // Array
+    const arr = [1, 2, 3];
+    const { result: arrayResult } = renderHook(() => useDebounce(arr, 100));
+    expect(arrayResult.current).toBe(arr);
+  });
+});
