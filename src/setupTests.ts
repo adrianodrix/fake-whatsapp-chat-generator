@@ -14,6 +14,12 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
 
+// Mock scrollIntoView para testes
+Object.defineProperty(Element.prototype, 'scrollIntoView', {
+  value: jest.fn(),
+  writable: true,
+});
+
 // Custom matchers for WhatsApp Chat Generator are extended by testing-library/jest-dom
 // Additional custom matchers are defined in test-utils/matchers.ts
 
