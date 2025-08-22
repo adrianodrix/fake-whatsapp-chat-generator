@@ -10,6 +10,12 @@ export type MessageSender = 'user' | 'contact';
 
 export type MessageType = 'text' | 'system';
 
+export interface MessageGrouping {
+  isGroupStart: boolean;
+  isGroupEnd: boolean;
+  isGrouped: boolean;
+}
+
 export interface Message {
   id: string;
   text: string;
@@ -19,6 +25,8 @@ export interface Message {
   type: MessageType;
   createdAt: Date;
   updatedAt: Date;
+  version?: number; // Version for optimistic locking
+  _grouping?: MessageGrouping; // Metadados opcionais para renderização
 }
 
 export interface ChatState {

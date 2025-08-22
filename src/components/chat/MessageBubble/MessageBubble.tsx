@@ -73,21 +73,55 @@ export const MessageBubble: React.FC<MessageBubbleProps> = memo(
     };
 
     const isUser = message.sender === 'user';
+    const grouping = message._grouping;
+
+    // Calculate margin based on grouping
+    const getMarginBottom = () => {
+      if (!grouping?.isGrouped) return 'mb-2'; // Default spacing for isolated messages
+      if (grouping.isGroupEnd) return 'mb-2'; // Normal spacing at end of group
+      return 'mb-1'; // Reduced spacing within group
+    };
 
     const wrapperClasses = `
-    flex w-full mb-2
+    flex w-full ${getMarginBottom()}
     ${isUser ? 'justify-end' : 'justify-start'}
   `
       .trim()
       .replace(/\s+/g, ' ');
 
+    // Calculate border radius based on grouping
+    const getBorderRadius = () => {
+      if (!grouping?.isGrouped) {
+        // Isolated message - normal WhatsApp radius
+        return isUser ? 'rounded-lg rounded-br-sm' : 'rounded-lg rounded-bl-sm';
+      }
+
+      // Grouped message - adjust corners
+      if (grouping.isGroupStart && grouping.isGroupEnd) {
+        // Single message (shouldn't happen with current logic but safe)
+        return isUser ? 'rounded-lg rounded-br-sm' : 'rounded-lg rounded-bl-sm';
+      }
+
+      if (grouping.isGroupStart) {
+        // First in group
+        return isUser ? 'rounded-lg rounded-br-md' : 'rounded-lg rounded-bl-md';
+      }
+
+      if (grouping.isGroupEnd) {
+        // Last in group
+        return isUser
+          ? 'rounded-t-md rounded-b-lg rounded-br-sm'
+          : 'rounded-t-md rounded-b-lg rounded-bl-sm';
+      }
+
+      // Middle of group
+      return isUser ? 'rounded-md rounded-br-md' : 'rounded-md rounded-bl-md';
+    };
+
     const bubbleClasses = `
-    max-w-bubble p-3 rounded-lg shadow-sm relative group
-    ${
-      isUser
-        ? 'bg-wa-bubble-sent rounded-br-sm'
-        : 'bg-wa-bubble-received rounded-bl-sm'
-    }
+    max-w-bubble p-3 shadow-sm relative group
+    ${isUser ? 'bg-wa-bubble-sent' : 'bg-wa-bubble-received'}
+    ${getBorderRadius()}
     ${isEditing ? 'ring-2 ring-wa-accent' : ''}
     ${showActions ? 'hover:shadow-md transition-shadow' : ''}
   `

@@ -55,7 +55,9 @@ describe('MessageEditPopover', () => {
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Test message')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('2023-01-01')).toBeInTheDocument(); // Date field
     expect(screen.getByDisplayValue('12:00')).toBeInTheDocument();
+    expect(screen.getByText('Definir como agora')).toBeInTheDocument(); // "Now" button
   });
 
   it('should not render when not visible', () => {
@@ -303,4 +305,90 @@ describe('MessageEditPopover', () => {
       screen.queryByText('Horário deve estar no formato HH:MM (ex: 14:30)')
     ).not.toBeInTheDocument();
   });
+
+  it('should set current date and time when "Definir como agora" is clicked', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <MessageEditPopover
+        message={mockMessage}
+        onSave={mockOnSave}
+        onCancel={mockOnCancel}
+        isVisible={true}
+      />
+    );
+
+    // Get current date and time for comparison
+    const now = new Date();
+    const expectedDate = now.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+    const nowButton = screen.getByText('Definir como agora');
+    await user.click(nowButton);
+
+    // Check that inputs have been updated with current date/time (approximately)
+    const dateInput = screen.getByDisplayValue(expectedDate);
+    const timeInput = screen.getByLabelText('Horário');
+
+    expect(dateInput).toBeInTheDocument();
+    expect(timeInput.value).toMatch(/^\d{2}:\d{2}$/); // Should match HH:MM format
+  });
+
+  it('should validate date field', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <MessageEditPopover
+        message={mockMessage}
+        onSave={mockOnSave}
+        onCancel={mockOnCancel}
+        isVisible={true}
+      />
+    );
+
+    const dateInput = screen.getByDisplayValue('2023-01-01');
+
+    // Clear and enter invalid date
+    await user.clear(dateInput);
+    await user.type(dateInput, 'invalid-date');
+
+    await user.click(screen.getByText('Salvar'));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Data é obrigatória/)).toBeInTheDocument();
+    });
+    expect(mockOnSave).not.toHaveBeenCalled();
+  }, 10000);
+
+  it('should validate status with timestamp', async () => {
+    const user = userEvent.setup();
+
+    // Create message with future date
+    const futureMessage = {
+      ...mockMessage,
+      timestamp: new Date('2030-01-01T12:00:00'),
+    };
+
+    render(
+      <MessageEditPopover
+        message={futureMessage}
+        onSave={mockOnSave}
+        onCancel={mockOnCancel}
+        isVisible={true}
+      />
+    );
+
+    const statusSelect = screen.getByDisplayValue('Enviado');
+    await user.selectOptions(statusSelect, 'read');
+
+    await user.click(screen.getByText('Salvar'));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          /Status "lido" não pode ser definido para horário futuro/
+        )
+      ).toBeInTheDocument();
+    });
+    expect(mockOnSave).not.toHaveBeenCalled();
+  }, 10000);
 });

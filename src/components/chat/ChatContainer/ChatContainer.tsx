@@ -1,10 +1,12 @@
-import React, { memo, useRef, useEffect } from 'react';
+import React, { memo, useRef, useEffect, useMemo } from 'react';
 import type { ChatContainerProps } from './ChatContainer.types';
 import { ChatHeader } from '../ChatHeader';
 import { MessageBubble } from '../MessageBubble';
 import { MessageEditPopover } from '../MessageEditPopover';
 import { MessageInput } from '../MessageInput';
+import { DateSeparator } from '../DateSeparator';
 import { useMessageEdit } from '@/hooks';
+import { groupMessagesByDate } from '@/utils/formatting';
 
 /**
  * Container principal do chat que replica o layout do WhatsApp
@@ -25,6 +27,11 @@ export const ChatContainer: React.FC<ChatContainerProps> = memo(
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const { editingState, startEdit, cancelEdit, saveEdit, isEditing } =
       useMessageEdit();
+
+    // Group messages by date for date separators
+    const groupedMessages = useMemo(() => {
+      return groupMessagesByDate(messages);
+    }, [messages]);
 
     // Auto-scroll para última mensagem
     useEffect(() => {
@@ -82,16 +89,23 @@ export const ChatContainer: React.FC<ChatContainerProps> = memo(
                 </div>
               </div>
             ) : (
-              messages.map((message) => (
-                <div key={message.id} data-message-id={message.id}>
-                  <MessageBubble
-                    message={message}
-                    onEdit={handleEditMessage}
-                    isEditing={isEditing(message.id)}
-                    showActions={true}
-                  />
-                </div>
-              ))
+              groupedMessages.map((item) => {
+                if (item.type === 'separator') {
+                  return <DateSeparator key={item.key} date={item.date!} />;
+                }
+
+                const message = item.message!;
+                return (
+                  <div key={item.key} data-message-id={message.id}>
+                    <MessageBubble
+                      message={message}
+                      onEdit={handleEditMessage}
+                      isEditing={isEditing(message.id)}
+                      showActions={true}
+                    />
+                  </div>
+                );
+              })
             )}
 
             {/* Loading indicator */}

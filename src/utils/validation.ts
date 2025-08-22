@@ -252,6 +252,66 @@ export function validateTime(timeStr: string): ValidationResult {
 }
 
 /**
+ * Valida formato de data YYYY-MM-DD
+ */
+export function validateDate(dateStr: string): ValidationResult {
+  if (!dateStr.trim()) {
+    return {
+      isValid: false,
+      error: 'Data é obrigatória',
+    };
+  }
+
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+
+  if (!dateRegex.test(dateStr)) {
+    return {
+      isValid: false,
+      error: 'Data deve estar no formato YYYY-MM-DD',
+    };
+  }
+
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) {
+    return {
+      isValid: false,
+      error: 'Data inválida',
+    };
+  }
+
+  return { isValid: true };
+}
+
+/**
+ * Valida se status é compatível com timestamp (não pode ser "lido" no futuro)
+ */
+export function validateStatusWithTimestamp(
+  status: string,
+  timestamp: Date
+): ValidationResult {
+  const now = new Date();
+
+  // Se o status é "read" e o timestamp é no futuro, é inválido
+  if (status === 'read' && timestamp > now) {
+    return {
+      isValid: false,
+      error: 'Status "lido" não pode ser definido para horário futuro',
+    };
+  }
+
+  // Se o timestamp é muito no futuro (mais de 1 dia), avisar
+  const oneDayFromNow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  if (timestamp > oneDayFromNow) {
+    return {
+      isValid: false,
+      error: 'Timestamp não pode ser mais de 24 horas no futuro',
+    };
+  }
+
+  return { isValid: true };
+}
+
+/**
  * Validação completa do arquivo com verificação de assinatura (assíncrona)
  */
 export async function validateUploadFileComplete(

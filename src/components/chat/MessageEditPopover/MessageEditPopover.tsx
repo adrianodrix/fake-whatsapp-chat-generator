@@ -11,10 +11,20 @@ import type {
   EditingFormData,
   ValidationErrors,
 } from './MessageEditPopover.types';
-import { formatTime, timeStringToDate } from '@/utils/formatting';
-import { validateTime, validateMessage } from '@/utils/validation';
+import {
+  formatTime,
+  formatDateInput,
+  combineDateAndTime,
+} from '@/utils/formatting';
+import {
+  validateTime,
+  validateDate,
+  validateMessage,
+  validateStatusWithTimestamp,
+} from '@/utils/validation';
 import { useClickOutside } from '@/hooks/useClickOutside';
 import { Icon } from '@/components/ui';
+import { DateTimeInput } from '@/components/ui/DateTimeInput';
 import type { MessageStatus } from '@/types/message';
 
 const statusOptions: { value: MessageStatus; label: string }[] = [
@@ -30,6 +40,7 @@ export const MessageEditPopover: React.FC<MessageEditPopoverProps> = memo(
   ({ message, onSave, onCancel, anchorEl, isVisible }) => {
     const [formData, setFormData] = useState<EditingFormData>({
       text: message.text,
+      date: formatDateInput(message.timestamp),
       time: formatTime(message.timestamp),
       status: message.status,
     });
@@ -72,6 +83,7 @@ export const MessageEditPopover: React.FC<MessageEditPopoverProps> = memo(
     useEffect(() => {
       setFormData({
         text: message.text,
+        date: formatDateInput(message.timestamp),
         time: formatTime(message.timestamp),
         status: message.status,
       });
@@ -101,10 +113,31 @@ export const MessageEditPopover: React.FC<MessageEditPopoverProps> = memo(
         newErrors.text = textValidation.error;
       }
 
+      // Validate date
+      const dateValidation = validateDate(formData.date);
+      if (!dateValidation.isValid) {
+        newErrors.date = dateValidation.error;
+      }
+
       // Validate time
       const timeValidation = validateTime(formData.time);
       if (!timeValidation.isValid) {
         newErrors.time = timeValidation.error;
+      }
+
+      // Validate temporal consistency if both date and time are valid
+      if (dateValidation.isValid && timeValidation.isValid) {
+        const combinedTimestamp = combineDateAndTime(
+          formData.date,
+          formData.time
+        );
+        const statusValidation = validateStatusWithTimestamp(
+          formData.status,
+          combinedTimestamp
+        );
+        if (!statusValidation.isValid) {
+          newErrors.status = statusValidation.error;
+        }
       }
 
       setErrors(newErrors);
@@ -117,7 +150,7 @@ export const MessageEditPopover: React.FC<MessageEditPopoverProps> = memo(
       setIsSubmitting(true);
 
       try {
-        const newTimestamp = timeStringToDate(formData.time, message.timestamp);
+        const newTimestamp = combineDateAndTime(formData.date, formData.time);
 
         const updates = {
           text: formData.text.trim(),
@@ -152,6 +185,22 @@ export const MessageEditPopover: React.FC<MessageEditPopoverProps> = memo(
         event.preventDefault();
         handleSave();
       }
+    };
+
+    const handleSetNow = () => {
+      const now = new Date();
+      setFormData((prev) => ({
+        ...prev,
+        date: formatDateInput(now),
+        time: formatTime(now),
+      }));
+      // Clear any date/time related errors
+      setErrors((prev) => ({
+        ...prev,
+        date: undefined,
+        time: undefined,
+        status: undefined,
+      }));
     };
 
     if (!isVisible) return null;
@@ -205,30 +254,67 @@ export const MessageEditPopover: React.FC<MessageEditPopoverProps> = memo(
             )}
           </div>
 
-          {/* Time and Status Row */}
-          <div className="grid grid-cols-2 gap-3">
-            {/* Time Field */}
-            <div>
-              <label
-                htmlFor="message-time"
-                className="block text-xs font-medium text-gray-700 mb-1"
-              >
-                Horário
-              </label>
-              <input
-                id="message-time"
-                type="text"
-                value={formData.time}
-                onChange={(e) => handleInputChange('time', e.target.value)}
-                placeholder="14:30"
-                className={`w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-wa-accent focus:border-transparent ${
-                  errors.time ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                }`}
+          {/* Date and Time Section */}
+          <div className="space-y-3">
+            {/* Date and Time Row */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Date Field */}
+              <div>
+                <label
+                  htmlFor="message-date"
+                  className="block text-xs font-medium text-gray-700 mb-1"
+                >
+                  Data
+                </label>
+                <DateTimeInput
+                  id="message-date"
+                  type="date"
+                  value={formData.date}
+                  onChange={(value) => handleInputChange('date', value)}
+                  className={`w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-wa-accent focus:border-transparent ${
+                    errors.date ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  }`}
+                  disabled={isSubmitting}
+                />
+                {errors.date && (
+                  <p className="mt-1 text-xs text-red-600">{errors.date}</p>
+                )}
+              </div>
+
+              {/* Time Field */}
+              <div>
+                <label
+                  htmlFor="message-time"
+                  className="block text-xs font-medium text-gray-700 mb-1"
+                >
+                  Horário
+                </label>
+                <DateTimeInput
+                  id="message-time"
+                  type="time"
+                  value={formData.time}
+                  onChange={(value) => handleInputChange('time', value)}
+                  className={`w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-wa-accent focus:border-transparent ${
+                    errors.time ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                  }`}
+                  disabled={isSubmitting}
+                />
+                {errors.time && (
+                  <p className="mt-1 text-xs text-red-600">{errors.time}</p>
+                )}
+              </div>
+            </div>
+
+            {/* "Agora" button */}
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={handleSetNow}
+                className="px-3 py-1 text-xs text-wa-accent hover:text-wa-accent/80 hover:bg-wa-accent/5 rounded transition-colors"
                 disabled={isSubmitting}
-              />
-              {errors.time && (
-                <p className="mt-1 text-xs text-red-600">{errors.time}</p>
-              )}
+              >
+                Definir como agora
+              </button>
             </div>
 
             {/* Status Field - Only for user messages */}
@@ -246,7 +332,11 @@ export const MessageEditPopover: React.FC<MessageEditPopoverProps> = memo(
                   onChange={(e) =>
                     handleInputChange('status', e.target.value as MessageStatus)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-wa-accent focus:border-transparent"
+                  className={`w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-wa-accent focus:border-transparent ${
+                    errors.status
+                      ? 'border-red-300 bg-red-50'
+                      : 'border-gray-300'
+                  }`}
                   disabled={isSubmitting}
                 >
                   {statusOptions.map((option) => (
@@ -255,6 +345,9 @@ export const MessageEditPopover: React.FC<MessageEditPopoverProps> = memo(
                     </option>
                   ))}
                 </select>
+                {errors.status && (
+                  <p className="mt-1 text-xs text-red-600">{errors.status}</p>
+                )}
               </div>
             )}
           </div>
