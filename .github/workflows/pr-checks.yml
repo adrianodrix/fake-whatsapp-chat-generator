@@ -1,0 +1,68 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  validation:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: TypeScript compilation
+      run: npm run type-check
+
+    - name: ESLint validation
+      run: npm run lint
+
+    - name: Prettier formatting check
+      run: npx prettier --check "src/**/*.{ts,tsx,js,jsx,css,md}"
+
+    - name: Build validation
+      run: npm run build
+      timeout-minutes: 5
+
+    - name: Build size check
+      run: |
+        BUILD_SIZE=$(du -sh dist | cut -f1)
+        echo "Build size: $BUILD_SIZE"
+        # Add size validation logic here if needed
+
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build
+      run: npm run build
+
+    - name: Deploy Preview to Vercel
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        vercel-org-id: ${{ secrets.ORG_ID }}
+        vercel-project-id: ${{ secrets.PROJECT_ID }}
+        working-directory: ./
