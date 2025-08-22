@@ -33,6 +33,7 @@ export interface ChatActions {
   deleteMessage: (id: string) => void;
   setActiveSender: (sender: MessageSender) => void;
   setEditing: (messageId: string | null) => void;
+  toggleSender: () => void;
 }
 
 export interface ChatContextType {
