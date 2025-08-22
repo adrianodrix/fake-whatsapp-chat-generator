@@ -24,7 +24,37 @@
 ### Integration Requirements
 4. **ESLint + Prettier configurados** com pre-commit hooks via Husky funcionando
 5. **GitHub Actions configurado** para rodar testes em PRs automaticamente
+
+### Test Automation Requirements
+5a. **Build Validation Tests** configurados para executar em PRs:
+   - Validação de TypeScript compilation (0 errors)
+   - ESLint validation (0 errors, 0 warnings)
+   - Prettier formatting check (auto-fix habilitado)
+   - Vite build process validation (< 60s build time)
+
+5b. **Deployment Health Checks** implementados:
+   - Health check endpoint `/api/health` retornando status 200
+   - Deploy verification script validando UI renderização
+   - Rollback automático em caso de deploy failure
+
+5c. **CI/CD Pipeline Tests** definidos:
+   - Pre-commit hooks validation (Husky + lint-staged)
+   - Branch protection rules enforcement
+   - Deploy preview URL generation e validation
+
 6. **Deploy automático Vercel** em pushes para main branch funcionando
+
+### Vercel Environment Configuration
+6a. **Environment Variables** configuradas no Vercel dashboard:
+   - `VITE_APP_NAME="Fake WhatsApp Chat Generator"`
+   - `VITE_APP_VERSION` (auto-populated from package.json)
+   - `VITE_BUILD_TIME` (auto-populated during build)
+   - `NODE_ENV=production` (Vercel auto-managed)
+
+6b. **Deployment Tokens** configurados:
+   - Vercel deployment token em GitHub Secrets
+   - GitHub Actions deploy key configurada
+   - Preview deployments habilitadas para feature branches
 
 ### Quality Requirements
 7. **README criado** com instruções claras de setup e desenvolvimento
@@ -34,7 +64,7 @@
 ## Technical Notes
 
 - **Integration Approach:** Usar templates oficiais Vite + configurações customizadas
-- **Existing Pattern Reference:** Estrutura definida em docs/architecture.md
+- **Existing Pattern Reference:** Estrutura definida em docs/architecture/source-tree-and-module-organization.md#development-setup
 - **Key Constraints:** Manter configuração simples, priorizar velocidade de desenvolvimento
 
 ## Definition of Done
@@ -45,6 +75,9 @@
 - ✅ **Pre-commit hooks** funcionando com lint e format
 - ✅ **README** com instruções completas de desenvolvimento
 - ✅ **TypeScript** compilando sem erros
+- ✅ **Test automation** executando com 100% success rate no CI
+- ✅ **Environment variables** validadas em deploy preview
+- ✅ **Health check endpoint** respondendo corretamente
 
 ## Risk and Compatibility Check
 
