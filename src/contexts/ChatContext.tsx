@@ -86,13 +86,22 @@ export const ChatProvider: React.FC<ChatProviderProps> = React.memo(
 
     const updateMessage = useCallback(
       (id: string, updates: Partial<Message>) => {
-        setMessages((prev) =>
-          prev.map((message) =>
+        setMessages((prev) => {
+          const updated = prev.map((message) =>
             message.id === id
               ? { ...message, ...updates, updatedAt: new Date() }
               : message
-          )
-        );
+          );
+
+          // Reorder messages by timestamp if timestamp was updated
+          if (updates.timestamp) {
+            return updated.sort(
+              (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
+            );
+          }
+
+          return updated;
+        });
       },
       []
     );

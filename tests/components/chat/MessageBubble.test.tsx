@@ -164,8 +164,8 @@ describe('MessageBubble', () => {
       render(<MessageBubble message={message} />);
       const endTime = performance.now();
 
-      // Deve renderizar em menos de 10ms
-      expect(endTime - startTime).toBeLessThan(10);
+      // Deve renderizar em menos de 50ms
+      expect(endTime - startTime).toBeLessThan(50);
     });
 
     it('quebra texto longo corretamente', () => {

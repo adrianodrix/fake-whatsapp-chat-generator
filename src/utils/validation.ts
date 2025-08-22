@@ -229,6 +229,29 @@ export function validateUploadFile(file: File): ValidationResult {
 }
 
 /**
+ * Valida formato de timestamp HH:MM
+ */
+export function validateTime(timeStr: string): ValidationResult {
+  if (!timeStr.trim()) {
+    return {
+      isValid: false,
+      error: 'Horário é obrigatório',
+    };
+  }
+
+  const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+
+  if (!timeRegex.test(timeStr)) {
+    return {
+      isValid: false,
+      error: 'Horário deve estar no formato HH:MM (ex: 14:30)',
+    };
+  }
+
+  return { isValid: true };
+}
+
+/**
  * Validação completa do arquivo com verificação de assinatura (assíncrona)
  */
 export async function validateUploadFileComplete(

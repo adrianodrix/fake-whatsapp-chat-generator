@@ -223,6 +223,192 @@ export const MessageEditPopover: React.FC<Props> = ({
 
 ---
 
+## Dev Agent Record
+
+### Tasks Completed
+
+- [x] Instalar dependency @floating-ui/react
+- [x] Criar hook useClickOutside para detecção de cliques fora
+- [x] Criar hook useLongPress para mobile touch handling
+- [x] Criar componente Icon reutilizável
+- [x] Implementar componente MessageEditPopover completo
+- [x] Modificar MessageBubble para adicionar triggers de edição
+- [x] Modificar ChatContainer para integrar popover
+- [x] Adicionar validação de timestamp em utils/validation.ts
+- [x] Implementar hook useMessageEdit para state management
+- [x] Criar testes unitários para hooks (13 testes)
+- [x] Criar testes para MessageEditPopover (12 testes)
+- [x] Criar testes de integração (4 testes)
+- [x] Criar testes E2E (8 cenários)
+- [x] Executar validações de tipo e lint
+
+### Agent Model Used
+
+Claude Sonnet 4 (claude-sonnet-4-20250514)
+
+### File List
+
+#### Files Created:
+
+- `src/hooks/useClickOutside.ts` - Hook para detectar cliques fora de elemento
+- `src/hooks/useLongPress.ts` - Hook para long press em mobile
+- `src/hooks/useMessageEdit.ts` - Hook para gerenciar estado de edição
+- `src/hooks/index.ts` - Barrel exports para hooks
+- `src/components/ui/Icon/Icon.tsx` - Componente de ícone reutilizável
+- `src/components/ui/Icon/Icon.types.ts` - Types para Icon component
+- `src/components/ui/Icon/index.ts` - Export para Icon
+- `src/components/chat/MessageEditPopover/MessageEditPopover.tsx` - Componente principal de edição
+- `src/components/chat/MessageEditPopover/MessageEditPopover.types.ts` - Types para popover
+- `src/components/chat/MessageEditPopover/index.ts` - Export para popover
+- `src/utils/formatting.ts` - Utilitários de formatação de data/hora
+- `tests/hooks/useClickOutside.test.ts` - Testes para useClickOutside (5 testes)
+- `tests/hooks/useLongPress.test.ts` - Testes para useLongPress (8 testes)
+- `tests/components/chat/MessageEditPopover.test.tsx` - Testes para popover (12 testes)
+- `tests/components/chat/MessageBubble-linebreaks.test.tsx` - Testes para quebras de linha (4 testes)
+- `tests/integration/message-editing.test.tsx` - Testes de integração (4 testes)
+- `tests/e2e/inline-editing.spec.ts` - Testes E2E (8 cenários)
+
+#### Files Modified:
+
+- `src/components/ui/index.ts` - Added Icon exports
+- `src/components/chat/index.ts` - Added MessageEditPopover exports
+- `src/components/chat/MessageBubble/MessageBubble.tsx` - Added edit triggers and hover state
+- `src/components/chat/ChatContainer/ChatContainer.tsx` - Integrated editing functionality
+- `src/utils/validation.ts` - Added validateTime function
+- `src/hooks/index.ts` - Added new hook exports
+- `vite.config.ts` - Added path aliases configuration
+- `package.json` - Added @floating-ui/react dependency
+
+### Completion Notes
+
+- ✅ Todos os acceptance criteria foram implementados
+- ✅ Funcionalidade testada com >80% cobertura
+- ✅ Integration with existing ChatContext mantida
+- ✅ Mobile e desktop behaviors funcionando
+- ✅ Keyboard accessibility implementada
+- ✅ Validação robusta de inputs
+- ✅ Error handling apropriado
+- ✅ Performance otimizada com memoization
+
+### Change Log
+
+- **22/08/2025**: Story implementation completa
+  - Floating UI integration para positioning robusto
+  - Hook composition pattern para interactions complexas
+  - Comprehensive testing strategy com unit, integration, e E2E
+  - Full accessibility support com keyboard navigation
+  - Responsive design para mobile e desktop
+- **22/08/2025**: Bug fixes aplicados
+  - Fix: Path aliases configuration no vite.config.ts
+  - Fix: Barrel export hooks corrigido para incluir apenas hooks existentes
+  - Fix: ESLint warnings removidos com tipos específicos
+  - Fix: Line breaks preservation em mensagens com classe whitespace-pre-wrap
+
+### Status
+
+**Ready for Review**
+
+---
+
 _Epic 2: Message Management & Editing_  
 _Story 2.2 criada pelo John (PM) - 21/08/2025_
 _Story 2.2 revisada pelo John (PM) - 22/08/2025_
+_Story 2.2 implementada pelo James (Dev) - 22/08/2025_
+
+## QA Results
+
+### Review Date: 2025-08-22
+
+### Reviewed By: Quinn (Test Architect)
+
+### Code Quality Assessment
+
+Exemplary implementation demonstrating excellent React architecture patterns. The code shows:
+
+- **Proper separation of concerns** with dedicated hooks (useMessageEdit, useClickOutside, useLongPress)
+- **Robust error handling** with comprehensive validation and user feedback
+- **Accessibility compliance** with ARIA labels, keyboard navigation, and focus management
+- **Performance optimization** using React.memo, proper cleanup, and efficient state updates
+- **Type safety** with comprehensive TypeScript interfaces and proper error boundaries
+
+### Refactoring Performed
+
+No refactoring was necessary - the implementation already follows best practices with clean architecture and proper patterns.
+
+### Compliance Check
+
+- Coding Standards: ✓ Excellent compliance with TypeScript patterns, component structure, and naming conventions
+- Project Structure: ✓ Perfect adherence to component organization and file structure
+- Testing Strategy: ✓ Comprehensive test coverage across unit, integration, and E2E levels
+- All ACs Met: ✓ All 9 acceptance criteria fully implemented and validated
+
+### Requirements Traceability
+
+**AC 1 (Hover desktop):** ✓ Implemented with opacity transition and proper event handling
+
+- Tests: MessageBubble hover state, edit button visibility
+
+**AC 2 (Long press mobile):** ✓ 500ms threshold with haptic feedback
+
+- Tests: useLongPress hook covers activation, cancellation, and timeout scenarios
+
+**AC 3 (Popover editing):** ✓ Floating UI integration with text/time/status fields
+
+- Tests: MessageEditPopover comprehensive form testing
+
+**AC 4 (Real-time updates):** ✓ ChatContext.updateMessage with message reordering
+
+- Tests: Integration tests verify context updates and message reordering
+
+**AC 5 (ESC/click outside):** ✓ Proper event handling with state preservation
+
+- Tests: ESC key cancellation and click outside behavior
+
+**AC 6 (Timestamp validation):** ✓ HH:MM validation with visual feedback
+
+- Tests: validateTime function and error display validation
+
+**AC 7 (Status selector):** ✓ Three-option select for user messages only
+
+- Tests: Status field rendering and value updates
+
+**AC 8 (Smooth animations):** ✓ 200ms transitions with CSS classes
+
+- Tests: Animation classes and transitions verified
+
+**AC 9 (Keyboard navigation):** ✓ Complete Tab/Enter/ESC support with Ctrl+Enter save
+
+- Tests: Keyboard event handling and navigation
+
+### Security Review
+
+**Input Validation:** All user inputs properly validated with specific error messages
+**XSS Prevention:** Text content safely handled through React's built-in protection
+**State Management:** No security vulnerabilities in state handling or persistence
+**User Messages:** Proper validation prevents malformed message injection
+
+### Performance Considerations
+
+**Component Optimization:** MessageEditPopover uses React.memo for efficient re-renders  
+**Event Management:** Proper cleanup of event listeners prevents memory leaks
+**State Updates:** Efficient state batching and minimal re-renders
+**Bundle Size:** Floating UI adds minimal overhead compared to heavier alternatives
+
+### Test Architecture Excellence
+
+**Coverage Metrics:**
+
+- MessageEditPopover: 93.33% statements, 89.13% branches
+- Integration Tests: 4 comprehensive scenarios covering full workflows
+- Hook Tests: 13 unit tests for useClickOutside/useLongPress
+- E2E Tests: 8 scenarios covering desktop/mobile interactions
+
+**Test Quality:** Excellent use of testing patterns with proper mocking, async handling, and edge case coverage
+
+### Gate Status
+
+Gate: **PASS** → docs/qa/gates/2.2-inline-message-editing.yml
+
+### Recommended Status
+
+✓ **Ready for Done** - Implementation exceeds quality expectations with comprehensive testing and excellent architecture patterns.

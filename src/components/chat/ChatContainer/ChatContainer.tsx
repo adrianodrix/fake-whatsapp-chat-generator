@@ -2,7 +2,9 @@ import React, { memo, useRef, useEffect } from 'react';
 import type { ChatContainerProps } from './ChatContainer.types';
 import { ChatHeader } from '../ChatHeader';
 import { MessageBubble } from '../MessageBubble';
+import { MessageEditPopover } from '../MessageEditPopover';
 import { MessageInput } from '../MessageInput';
+import { useMessageEdit } from '@/hooks';
 
 /**
  * Container principal do chat que replica o layout do WhatsApp
@@ -21,11 +23,21 @@ export const ChatContainer: React.FC<ChatContainerProps> = memo(
     loading = false,
   }) => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const { editingState, startEdit, cancelEdit, saveEdit, isEditing } =
+      useMessageEdit();
 
     // Auto-scroll para última mensagem
     useEffect(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
+
+    // Handle edit message
+    const handleEditMessage = (messageId: string) => {
+      const messageElement = document.querySelector(
+        `[data-message-id="${messageId}"]`
+      ) as HTMLElement;
+      startEdit(messageId, messageElement);
+    };
 
     return (
       <div className="flex flex-col h-full bg-wa-bg-chat">
@@ -71,11 +83,14 @@ export const ChatContainer: React.FC<ChatContainerProps> = memo(
               </div>
             ) : (
               messages.map((message) => (
-                <MessageBubble
-                  key={message.id}
-                  message={message}
-                  showActions={true}
-                />
+                <div key={message.id} data-message-id={message.id}>
+                  <MessageBubble
+                    message={message}
+                    onEdit={handleEditMessage}
+                    isEditing={isEditing(message.id)}
+                    showActions={true}
+                  />
+                </div>
               ))
             )}
 
@@ -110,6 +125,17 @@ export const ChatContainer: React.FC<ChatContainerProps> = memo(
           activeSender={activeSender}
           disabled={loading}
         />
+
+        {/* Edit Popover */}
+        {editingState.messageId && editingState.originalMessage && (
+          <MessageEditPopover
+            message={editingState.originalMessage}
+            onSave={saveEdit}
+            onCancel={cancelEdit}
+            anchorEl={editingState.anchorEl}
+            isVisible={true}
+          />
+        )}
       </div>
     );
   }

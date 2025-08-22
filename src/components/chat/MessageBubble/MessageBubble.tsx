@@ -1,4 +1,6 @@
-import React, { memo } from 'react';
+import React, { memo, useRef } from 'react';
+import { Icon } from '@/components/ui';
+import { useIsMobile, useLongPress } from '@/hooks';
 import type { MessageBubbleProps } from './MessageBubble.types';
 
 /**
@@ -14,7 +16,28 @@ import type { MessageBubbleProps } from './MessageBubble.types';
  * ```
  */
 export const MessageBubble: React.FC<MessageBubbleProps> = memo(
-  ({ message, isEditing = false, showActions = false }) => {
+  ({ message, onEdit, isEditing = false, showActions = false }) => {
+    const bubbleRef = useRef<HTMLDivElement>(null);
+    const isMobile = useIsMobile();
+
+    // Long press handler for mobile
+    const longPressHandlers = useLongPress(
+      () => {
+        if (onEdit) {
+          onEdit(message.id);
+        }
+      },
+      { threshold: 500 }
+    );
+
+    // Handle edit click
+    const handleEditClick = (event: React.MouseEvent) => {
+      event.stopPropagation();
+      if (onEdit) {
+        onEdit(message.id);
+      }
+    };
+
     const formatTime = (date: Date): string => {
       return date.toLocaleTimeString('pt-BR', {
         hour: '2-digit',
@@ -74,9 +97,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = memo(
     // Wrapper condicional para Profiler (apenas em desenvolvimento)
     const content = (
       <div className={wrapperClasses}>
-        <div className={bubbleClasses}>
+        <div
+          ref={bubbleRef}
+          className={bubbleClasses}
+          {...(isMobile && onEdit ? longPressHandlers : {})}
+        >
           <div className="break-words">
-            <p className="text-wa-text-primary text-sm leading-relaxed mb-1">
+            <p className="text-wa-text-primary text-sm leading-relaxed mb-1 whitespace-pre-wrap">
               {message.text}
             </p>
 
@@ -91,11 +118,26 @@ export const MessageBubble: React.FC<MessageBubbleProps> = memo(
             </div>
           </div>
 
-          {/* Ações de hover (futuro) */}
-          {showActions && (
-            <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              {/* Placeholder para ações futuras */}
+          {/* Edit button for desktop hover */}
+          {!isMobile && onEdit && (
+            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <button
+                onClick={handleEditClick}
+                className="p-1.5 bg-white/90 hover:bg-white shadow-sm border border-gray-200 rounded-full transition-colors"
+                aria-label="Editar mensagem"
+              >
+                <Icon
+                  name="edit"
+                  size="sm"
+                  className="text-gray-600 hover:text-gray-800"
+                />
+              </button>
             </div>
+          )}
+
+          {/* Mobile long press feedback */}
+          {isMobile && longPressHandlers.isPressed && (
+            <div className="absolute inset-0 bg-gray-200 opacity-20 rounded-lg pointer-events-none" />
           )}
         </div>
       </div>
