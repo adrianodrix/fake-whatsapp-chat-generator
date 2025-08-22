@@ -1,4 +1,3 @@
-import React from 'react';
 import { screen } from '@testing-library/react';
 import { renderWithProviders, createMockMessage } from '../../../test-utils';
 import { MessageBubble } from './MessageBubble';

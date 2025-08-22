@@ -138,12 +138,12 @@ const PerformancePanelContent: React.FC<PerformancePanelProps> = ({
           <div className="space-y-1">
             {budgetResults.map((result) => (
               <div
-                key={result.metric}
+                key={result.category}
                 className="flex items-center justify-between text-xs"
               >
-                <span className="text-gray-600">{result.metric}:</span>
+                <span className="text-gray-600">{result.category}:</span>
                 <span className={getStatusColor(result.passed)}>
-                  {formatTime(result.value)} / {formatTime(result.budget)}
+                  {result.metrics.length} metrics
                   {result.passed ? ' ✓' : ' ✗'}
                 </span>
               </div>
@@ -173,7 +173,7 @@ const PerformancePanelContent: React.FC<PerformancePanelProps> = ({
                         {metric.name}
                       </span>
                       <span className="text-gray-900 font-mono">
-                        {formatTime(metric.duration)}
+                        {formatTime(metric.value)}
                       </span>
                     </div>
                   ))}
@@ -201,7 +201,7 @@ const PerformancePanelContent: React.FC<PerformancePanelProps> = ({
               {metricsByCategory.render.length > 0
                 ? formatTime(
                     metricsByCategory.render.reduce(
-                      (sum, m) => sum + m.duration,
+                      (sum, m) => sum + m.value,
                       0
                     ) / metricsByCategory.render.length
                   )

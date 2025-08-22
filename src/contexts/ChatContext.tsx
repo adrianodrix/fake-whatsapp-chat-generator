@@ -63,6 +63,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = React.memo(
           type: 'text',
           createdAt: new Date(),
           updatedAt: new Date(),
+          version: 1,
         };
 
         setMessages((prev) => {
@@ -87,20 +88,113 @@ export const ChatProvider: React.FC<ChatProviderProps> = React.memo(
     const updateMessage = useCallback(
       (id: string, updates: Partial<Message>) => {
         setMessages((prev) => {
-          const updated = prev.map((message) =>
-            message.id === id
-              ? { ...message, ...updates, updatedAt: new Date() }
-              : message
-          );
+          // Store original state for atomic rollback capability
+          const originalMessages = [...prev];
 
-          // Reorder messages by timestamp if timestamp was updated
-          if (updates.timestamp) {
-            return updated.sort(
-              (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
-            );
+          try {
+            // Find target message for optimistic locking check
+            const targetMessage = prev.find((msg) => msg.id === id);
+            if (!targetMessage) {
+              console.warn(`Message with id ${id} not found for update`);
+              return prev;
+            }
+
+            // Comprehensive temporal validation before applying updates
+            if (updates.timestamp) {
+              const newTimestamp = updates.timestamp;
+              const now = new Date();
+
+              // Critical temporal validation: prevent inconsistent states
+              if (updates.status === 'read' && newTimestamp > now) {
+                console.error(
+                  'Temporal validation failed: Read status cannot be set for future timestamp'
+                );
+                throw new Error(
+                  'Status "read" cannot be set for future timestamp'
+                );
+              }
+
+              // Prevent extreme future dates (more than 24h)
+              const oneDayFromNow = new Date(
+                now.getTime() + 24 * 60 * 60 * 1000
+              );
+              if (newTimestamp > oneDayFromNow) {
+                console.error(
+                  'Temporal validation failed: Timestamp too far in future'
+                );
+                throw new Error(
+                  'Timestamp cannot be more than 24 hours in the future'
+                );
+              }
+
+              // Validate timestamp is not in the past beyond reasonable limits (1 year)
+              const oneYearAgo = new Date(
+                now.getTime() - 365 * 24 * 60 * 60 * 1000
+              );
+              if (newTimestamp < oneYearAgo) {
+                console.error(
+                  'Temporal validation failed: Timestamp too far in past'
+                );
+                throw new Error(
+                  'Timestamp cannot be more than 1 year in the past'
+                );
+              }
+            }
+
+            // Apply updates atomically with version control
+            const updated = prev.map((message) => {
+              if (message.id === id) {
+                // Optimistic locking: check version if provided in updates
+                if (
+                  updates.version !== undefined &&
+                  message.version !== undefined
+                ) {
+                  if (updates.version !== message.version) {
+                    throw new Error(
+                      `Concurrent modification detected. Expected version ${updates.version} but found ${message.version}`
+                    );
+                  }
+                }
+
+                // Increment version on update
+                const newVersion = (message.version || 1) + 1;
+                return {
+                  ...message,
+                  ...updates,
+                  updatedAt: new Date(),
+                  version: newVersion,
+                };
+              }
+              return message;
+            });
+
+            // Reorder messages by timestamp if timestamp was updated
+            if (updates.timestamp) {
+              // Use a stable sort to prevent corruption
+              return updated.sort((a, b) => {
+                const timeA =
+                  a.timestamp instanceof Date
+                    ? a.timestamp.getTime()
+                    : new Date(a.timestamp).getTime();
+                const timeB =
+                  b.timestamp instanceof Date
+                    ? b.timestamp.getTime()
+                    : new Date(b.timestamp).getTime();
+
+                // Secondary sort by createdAt for stability
+                if (timeA === timeB) {
+                  return a.createdAt.getTime() - b.createdAt.getTime();
+                }
+                return timeA - timeB;
+              });
+            }
+
+            return updated;
+          } catch (error) {
+            // Rollback on error - return original state
+            console.error('Failed to update message:', error);
+            return originalMessages;
           }
-
-          return updated;
         });
       },
       []

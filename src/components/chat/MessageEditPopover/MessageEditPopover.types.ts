@@ -10,12 +10,14 @@ export interface MessageEditPopoverProps {
 
 export interface EditingFormData {
   text: string;
+  date: string;
   time: string;
   status: MessageStatus;
 }
 
 export interface ValidationErrors {
   text?: string;
+  date?: string;
   time?: string;
   status?: string;
 }
