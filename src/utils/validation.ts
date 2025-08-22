@@ -78,6 +78,34 @@ export function sanitizeString(input: string): string {
 }
 
 /**
+ * Valida texto de mensagem
+ */
+export function validateMessage(text: string): ValidationResult {
+  if (!text.trim()) {
+    return {
+      isValid: false,
+      error: 'Mensagem não pode estar vazia',
+    };
+  }
+
+  if (text.length > 4096) {
+    return {
+      isValid: false,
+      error: 'Mensagem muito longa (máximo 4096 caracteres)',
+    };
+  }
+
+  return { isValid: true, error: null };
+}
+
+/**
+ * Sanitiza mensagem (escapa HTML e remove espaços em branco)
+ */
+export function sanitizeMessage(text: string): string {
+  return sanitizeString(text.trim());
+}
+
+/**
  * Validação completa do arquivo de upload
  */
 export function validateUploadFile(file: File): ValidationResult {
