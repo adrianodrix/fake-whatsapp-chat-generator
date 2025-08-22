@@ -67,9 +67,13 @@ interface Message {
 ```typescript
 // ✅ Correto - Arquivo de types dedicado
 // src/types/message.ts
-export interface Message { /* ... */ }
+export interface Message {
+  /* ... */
+}
 export type MessageStatus = 'sent' | 'delivered' | 'read';
-export interface ChatProfiles { /* ... */ }
+export interface ChatProfiles {
+  /* ... */
+}
 
 // ✅ Correto - Re-exportação em index
 // src/types/index.ts
@@ -86,25 +90,25 @@ import React, { memo } from 'react';
 import { MessageBubbleProps } from './MessageBubble.types';
 import { formatTime } from '../../utils/formatting';
 
-export const MessageBubble: React.FC<MessageBubbleProps> = memo(({ 
-  message, 
-  onEdit, 
+export const MessageBubble: React.FC<MessageBubbleProps> = memo(({
+  message,
+  onEdit,
   onDelete,
-  isEditing = false 
+  isEditing = false
 }) => {
   // 1. Early returns
   if (!message.text) return null;
-  
+
   // 2. Computed values
-  const bubbleStyles = message.sender === 'user' 
-    ? 'bg-wa-bubble-sent ml-auto' 
+  const bubbleStyles = message.sender === 'user'
+    ? 'bg-wa-bubble-sent ml-auto'
     : 'bg-wa-bubble-received mr-auto';
-  
+
   // 3. Event handlers
   const handleEdit = () => {
     onEdit?.(message.id);
   };
-  
+
   // 4. Render
   return (
     <div className={`max-w-sm p-2 rounded-lg ${bubbleStyles}`}>
@@ -132,11 +136,11 @@ import { ChatContext } from '../contexts/ChatContext';
 
 export const useChat = () => {
   const context = useContext(ChatContext);
-  
+
   if (!context) {
     throw new Error('useChat deve ser usado dentro de ChatProvider');
   }
-  
+
   return context;
 };
 
@@ -150,12 +154,15 @@ export const useLocalStorage = <T>(key: string, defaultValue: T) => {
       return defaultValue;
     }
   });
-  
-  const setStoredValue = useCallback((newValue: T) => {
-    setValue(newValue);
-    localStorage.setItem(key, JSON.stringify(newValue));
-  }, [key]);
-  
+
+  const setStoredValue = useCallback(
+    (newValue: T) => {
+      setValue(newValue);
+      localStorage.setItem(key, JSON.stringify(newValue));
+    },
+    [key]
+  );
+
   return [value, setStoredValue] as const;
 };
 ```
@@ -177,7 +184,7 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<ChatState>(initialState);
-  
+
   const actions = useMemo(() => ({
     addMessage: (text: string) => {
       // Implementação...
@@ -189,9 +196,9 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Implementação...
     },
   }), []);
-  
+
   const value = useMemo(() => ({ state, actions }), [state, actions]);
-  
+
   return (
     <ChatContext.Provider value={value}>
       {children}
@@ -208,8 +215,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 // ✅ Correto - Classes organizadas logicamente
 const messageStyles = `
   max-w-sm p-3 rounded-lg shadow-sm mb-2
-  ${message.sender === 'user' 
-    ? 'bg-wa-bubble-sent ml-auto' 
+  ${message.sender === 'user'
+    ? 'bg-wa-bubble-sent ml-auto'
     : 'bg-wa-bubble-received mr-auto'
   }
 `;
@@ -245,11 +252,11 @@ module.exports = {
             primary: '#000000',
             secondary: '#667781',
             meta: '#8696A0',
-          }
-        }
-      }
-    }
-  }
+          },
+        },
+      },
+    },
+  },
 };
 ```
 
@@ -263,11 +270,14 @@ export const validateMessage = (text: string): ValidationResult => {
   if (!text.trim()) {
     return { isValid: false, error: 'Mensagem não pode estar vazia' };
   }
-  
+
   if (text.length > 4096) {
-    return { isValid: false, error: 'Mensagem muito longa (máximo 4096 caracteres)' };
+    return {
+      isValid: false,
+      error: 'Mensagem muito longa (máximo 4096 caracteres)',
+    };
   }
-  
+
   return { isValid: true, error: null };
 };
 
@@ -291,16 +301,16 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     super(props);
     this.state = { hasError: false, error: null };
   }
-  
+
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { hasError: true, error };
   }
-  
+
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Error caught by boundary:', error, errorInfo);
     // Log para Sentry em produção
   }
-  
+
   render() {
     if (this.state.hasError) {
       return (
@@ -310,7 +320,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         </div>
       );
     }
-    
+
     return this.props.children;
   }
 }
@@ -323,7 +333,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 const useAsyncOperation = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const execute = async <T>(operation: () => Promise<T>): Promise<T | null> => {
     try {
       setLoading(true);
@@ -338,7 +348,7 @@ const useAsyncOperation = () => {
       setLoading(false);
     }
   };
-  
+
   return { execute, loading, error };
 };
 ```
@@ -363,12 +373,12 @@ describe('MessageBubble', () => {
     createdAt: new Date(),
     updatedAt: new Date(),
   };
-  
+
   it('renderiza o texto da mensagem', () => {
     render(<MessageBubble message={mockMessage} />);
     expect(screen.getByText('Hello world')).toBeInTheDocument();
   });
-  
+
   it('aplica estilo correto para mensagem enviada', () => {
     render(<MessageBubble message={mockMessage} />);
     const bubble = screen.getByRole('article');
@@ -396,18 +406,18 @@ const MessageList = ({ messages }: { messages: Message[] }) => {
   const sortedMessages = useMemo(() => {
     return messages.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
   }, [messages]);
-  
+
   const handleMessageEdit = useCallback((id: string) => {
     // Handle edit
   }, []);
-  
+
   return (
     <div>
       {sortedMessages.map(message => (
-        <MessageBubble 
-          key={message.id} 
-          message={message} 
-          onEdit={handleMessageEdit} 
+        <MessageBubble
+          key={message.id}
+          message={message}
+          onEdit={handleMessageEdit}
         />
       ))}
     </div>
@@ -415,37 +425,91 @@ const MessageList = ({ messages }: { messages: Message[] }) => {
 };
 ```
 
+## Story Documentation Standards
+
+### Referências Arquiteturais
+
+```markdown
+# ✅ Correto - Referências específicas
+
+- **Data Model Reference:** Message interface especificada em `docs/architecture/data-models-and-state-management.md#message-interface`
+- **Pattern Reference:** Context pattern definido em `docs/architecture/data-models-and-state-management.md#react-context-architecture`
+- **Component Reference:** Styling patterns em `docs/architecture/component-architecture-and-design-system.md#whatsapp-ui-components`
+
+# ❌ Evitar - Referências genéricas
+
+- **Pattern Reference:** Context pattern definido na arquitetura
+- **Reference:** Conforme documentação arquitetural
+- **See:** Architecture document
+```
+
+### Formato Padrão de Referências
+
+```markdown
+# Template para Story Documentation
+
+## Technical Notes
+
+- **Integration Approach:** [Descrição da abordagem]
+- **Existing Pattern Reference:** `docs/architecture/[file].md#[section-specific]`
+- **Data Model Reference:** `docs/architecture/[file].md#[interface-name]`
+- **Component Reference:** `docs/architecture/[file].md#[component-pattern]`
+- **Key Constraints:** [Limitações técnicas específicas]
+
+## Story Context
+
+- **Architecture Reference:** `docs/architecture/[relevant-doc].md#[specific-section]`
+- **Dependencies:** [Histórias ou componentes dependentes]
+```
+
+### Princípios para Referências
+
+1. **Especificidade:** Sempre referencie seções específicas com `#section-name`
+2. **Relevância:** Inclua apenas referências diretamente relevantes para a implementação
+3. **Consistência:** Use o formato padrão `docs/architecture/[file].md#[section]`
+4. **Contexto:** Explique brevemente por que a referência é relevante
+5. **Atualização:** Mantenha referências atualizadas quando arquitetura mudar
+
+### Validação de Referências
+
+Antes de finalizar uma história, verifique:
+
+- [ ] Todas as referências apontam para seções específicas
+- [ ] Links seguem o formato padrão
+- [ ] Referências são necessárias para implementação
+- [ ] Nenhuma referência genérica ou vaga foi incluída
+
 ## Documentação
 
 ### JSDoc Padrão
 
-```typescript
+````typescript
 /**
  * Componente de bolha de mensagem que replica o visual do WhatsApp
- * 
+ *
  * @example
  * ```tsx
- * <MessageBubble 
- *   message={message} 
+ * <MessageBubble
+ *   message={message}
  *   onEdit={handleEdit}
- *   isEditing={isEditing} 
+ *   isEditing={isEditing}
  * />
  * ```
  */
-export const MessageBubble: React.FC<MessageBubbleProps> = ({ 
-  message, 
+export const MessageBubble: React.FC<MessageBubbleProps> = ({
+  message,
   onEdit,
-  isEditing = false 
+  isEditing = false,
 }) => {
   // Implementation
 };
 
 /**
  * Valida e sanitiza texto de mensagem
- * 
+ *
  * @param text - Texto da mensagem para validar
  * @returns Resultado da validação com erro se inválido
- * 
+ *
  * @example
  * ```ts
  * const result = validateMessage("Hello world");
@@ -457,7 +521,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
 export const validateMessage = (text: string): ValidationResult => {
   // Implementation
 };
-```
+````
 
 ## Regras de ESLint/Prettier
 
@@ -474,7 +538,10 @@ export const validateMessage = (text: string): ValidationResult => {
     "react/prop-types": "off",
     "react/react-in-jsx-scope": "off",
     "@typescript-eslint/explicit-function-return-type": "off",
-    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      { "argsIgnorePattern": "^_" }
+    ],
     "prefer-const": "error",
     "no-var": "error"
   }
@@ -483,4 +550,4 @@ export const validateMessage = (text: string): ValidationResult => {
 
 ---
 
-*Documento mantido por Winston (Architect) - Atualizado em 22/08/2025*
+_Documento mantido por Winston (Architect) - Atualizado em 22/08/2025_
