@@ -1,41 +1,138 @@
 # Fake WhatsApp Chat Generator
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+Um gerador de chat falso do WhatsApp que permite criar conversas realistas para fins educacionais, demonstrações e testes de UX.
 
-Um webapp moderno e intuitivo para criar conversas falsas do WhatsApp com interface realista e funcionalidades avançadas de personalização.
+## 🚀 Início Rápido
 
-## 📱 Sobre o Projeto
+### Pré-requisitos
 
-O **Fake WhatsApp Chat Generator** é uma aplicação web que permite aos usuários criar simulações de conversas fictícias do WhatsApp com uma interface visual idêntica ao aplicativo original da Meta. Ideal para:
+- Node.js 18+
+- npm
 
-- 🎭 Criação de conteúdo para redes sociais
-- 📚 Demonstrações educacionais
-- 🎬 Storytelling e narrativas interativas
-- 🧪 Testes de interface e UX
-- 🎨 Projetos criativos e artísticos
+### Instalação e Desenvolvimento
 
-## ✨ Funcionalidades
+```bash
+# Clone o repositório
+git clone <repository-url>
+cd fake-whatsapp-chat-generator
 
-### 🎨 Interface Realista
-- Design 100% fiel ao WhatsApp Web
-- Cores, tipografia e ícones oficiais
-- Animações suaves e transições naturais
-- Layout responsivo para desktop e mobile
+# Instale as dependências
+npm install
 
-### 💬 Geração de Conversas
-- Criação de múltiplos participantes
-- Mensagens de texto com formatação
-- Suporte a emojis e stickers
-- Indicadores de leitura e digitação
-- Timestamps realistas
+# Inicie o servidor de desenvolvimento
+npm run dev
+```
 
-### 🎛️ Personalização Avançada
-- Upload de fotos de perfil personalizadas
-- Nomes e números de telefone customizáveis
-- Status online/offline configurável
-- Temas de cores (claro/escuro)
-- Configuração de horários de mensagens
+O aplicativo estará disponível em http://localhost:5173
 
-### 📤 Exportação e Compartilhamento
-- Exportação em formato de imagem (PNG/JPG)
-- Download em alta resolução
+## 📝 Scripts Disponíveis
+
+```bash
+# Desenvolvimento
+npm run dev          # Inicia servidor de desenvolvimento
+npm run build        # Build para produção
+npm run preview      # Preview do build de produção
+
+# Qualidade de Código
+npm run lint         # Executa ESLint
+npm run lint:fix     # Corrige problemas do ESLint automaticamente
+npm run format       # Formata código com Prettier
+npm run type-check   # Verifica tipos TypeScript
+```
+
+## 🛠 Stack Tecnológica
+
+- **Framework:** React 19 + TypeScript
+- **Build Tool:** Vite 7
+- **Styling:** Tailwind CSS 3 com design tokens do WhatsApp
+- **Linting:** ESLint + Prettier
+- **Git Hooks:** Husky + lint-staged
+- **CI/CD:** GitHub Actions
+- **Deploy:** Vercel
+
+## 🎨 Design System
+
+O projeto utiliza design tokens baseados no WhatsApp oficial:
+
+- **Cores:** Sistema de cores completo do WhatsApp (primárias, secundárias, bolhas, texto)
+- **Typography:** Font stack nativa do sistema
+- **Spacing:** Sistema de espaçamento consistente
+- **Animations:** Animações sutis para melhor UX
+
+## 🧪 Qualidade e Testes
+
+### Pre-commit Hooks
+
+Automaticamente executados antes de cada commit:
+
+- ESLint validation
+- Prettier formatting
+- TypeScript type checking
+
+### CI/CD Pipeline
+
+- **Pull Requests:** Validação completa + deploy preview
+- **Main Branch:** Deploy automático para produção
+- **Validações:** TypeScript, ESLint, Prettier, Build
+
+## 📁 Estrutura do Projeto
+
+```
+src/
+├── components/          # Componentes React
+│   ├── ui/             # Componentes base reutilizáveis
+│   ├── chat/           # Componentes específicos do WhatsApp
+│   └── layout/         # Componentes de layout
+├── contexts/           # React Context providers
+├── hooks/              # Custom React hooks
+├── types/              # TypeScript interfaces
+├── utils/              # Funções utilitárias
+└── styles/             # Estilos globais
+```
+
+## 🌐 Deploy
+
+### Vercel (Automático)
+
+- **Produção:** Pushes para `main` branch
+- **Preview:** Pull requests automaticamente
+- **Health Check:** `/api/health` endpoint disponível
+
+### Variáveis de Ambiente
+
+```bash
+VITE_APP_NAME="Fake WhatsApp Chat Generator"
+VITE_APP_VERSION="1.0.0"
+VITE_BUILD_TIME="auto-generated"
+```
+
+## 🤝 Contribuição
+
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
+3. Commit suas mudanças (`git commit -m 'Adiciona nova feature'`)
+4. Push para a branch (`git push origin feature/nova-feature`)
+5. Abra um Pull Request
+
+### Padrões de Código
+
+- **ESLint:** Configuração rigorosa para qualidade
+- **Prettier:** Formatação automática
+- **TypeScript:** Tipagem estrita obrigatória
+- **Commits:** Mensagens descritivas em português
+
+## 📄 Licença
+
+Este projeto é apenas para fins educacionais e demonstrações.
+
+## 🔗 Links Úteis
+
+- [Documentação Técnica](./docs/)
+- [Stories de Usuário](./docs/stories/)
+- [Arquitetura](./docs/architecture/)
+
+---
+
+**Stack:** React + TypeScript + Tailwind CSS + Vite  
+**Versão:** 1.0.0  
+**Status:** ✅ Configuração Completa
