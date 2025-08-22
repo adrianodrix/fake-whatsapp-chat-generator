@@ -17,8 +17,11 @@ Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
     textBaseline: '',
     fillText: jest.fn(),
     drawImage: jest.fn(),
-    toDataURL: jest.fn(() => 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQ=='),
   })),
+});
+
+Object.defineProperty(HTMLCanvasElement.prototype, 'toDataURL', {
+  value: jest.fn(() => 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQ=='),
 });
 
 Object.defineProperty(HTMLCanvasElement.prototype, 'toBlob', {
@@ -51,7 +54,36 @@ global.URL = {
   revokeObjectURL: jest.fn(),
 } as unknown as typeof URL;
 
+// Mock document.createElement para canvas
+const originalCreateElement = document.createElement;
+document.createElement = jest.fn((tagName: string) => {
+  if (tagName === 'canvas') {
+    const canvas = originalCreateElement.call(document, 'canvas');
+    Object.defineProperty(canvas, 'getContext', {
+      value: () => ({
+        fillStyle: '',
+        fillRect: jest.fn(),
+        font: '',
+        textAlign: '',
+        textBaseline: '',
+        fillText: jest.fn(),
+        drawImage: jest.fn(),
+      }),
+    });
+    Object.defineProperty(canvas, 'toDataURL', {
+      value: () => 'data:image/png;base64,test',
+    });
+    return canvas;
+  }
+  return originalCreateElement.call(document, tagName);
+});
+
 describe('Image Processing Utils', () => {
+  afterAll(() => {
+    // Restaurar document.createElement original
+    document.createElement = originalCreateElement;
+  });
+
   describe('isCanvasSupported', () => {
     it('deve detectar suporte ao Canvas API', () => {
       expect(isCanvasSupported()).toBe(true);

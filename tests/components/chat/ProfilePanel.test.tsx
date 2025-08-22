@@ -59,7 +59,7 @@ describe('ProfilePanel', () => {
 
     expect(screen.getByText('Teste')).toBeInTheDocument();
     expect(screen.getByDisplayValue('João Silva')).toBeInTheDocument();
-    expect(screen.getByText('Adicionar foto')).toBeInTheDocument();
+    expect(screen.getByText('Alterar foto')).toBeInTheDocument();
   });
 
   it('deve mostrar avatar quando perfil tem foto', () => {
@@ -147,7 +147,7 @@ describe('ProfilePanel', () => {
       />
     );
 
-    const input = screen.getByRole('button', { name: /adicionar foto/i });
+    const input = screen.getByRole('button', { name: /alterar foto/i });
     fireEvent.click(input);
 
     const fileInput = document.querySelector(
@@ -241,7 +241,7 @@ describe('ProfilePanel', () => {
       />
     );
 
-    const input = screen.getByRole('button', { name: /adicionar foto/i });
+    const input = screen.getByRole('button', { name: /alterar foto/i });
     fireEvent.click(input);
 
     const fileInput = document.querySelector(

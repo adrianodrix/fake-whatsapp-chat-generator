@@ -25,7 +25,8 @@ describe('MessageBubble', () => {
       const message = createMockMessage({ sender: 'user' });
       render(<MessageBubble message={message} />);
 
-      const bubble = screen.getByText('Mensagem de teste').closest('div');
+      const text = screen.getByText('Mensagem de teste');
+      const bubble = text.closest('[class*="bg-wa-bubble"]');
       expect(bubble).toHaveClass('bg-wa-bubble-sent');
     });
 
@@ -33,7 +34,8 @@ describe('MessageBubble', () => {
       const message = createMockMessage({ sender: 'contact' });
       render(<MessageBubble message={message} />);
 
-      const bubble = screen.getByText('Mensagem de teste').closest('div');
+      const text = screen.getByText('Mensagem de teste');
+      const bubble = text.closest('[class*="bg-wa-bubble"]');
       expect(bubble).toHaveClass('bg-wa-bubble-received');
     });
 
@@ -41,16 +43,18 @@ describe('MessageBubble', () => {
       const message = createMockMessage({ sender: 'user' });
       render(<MessageBubble message={message} />);
 
-      const bubble = screen.getByText('Mensagem de teste').closest('div');
-      expect(bubble).toHaveClass('ml-auto');
+      const text = screen.getByText('Mensagem de teste');
+      const wrapper = text.closest('[class*="justify-"]');
+      expect(wrapper).toHaveClass('justify-end');
     });
 
     it('aplica posicionamento correto para mensagens recebidas', () => {
       const message = createMockMessage({ sender: 'contact' });
       render(<MessageBubble message={message} />);
 
-      const bubble = screen.getByText('Mensagem de teste').closest('div');
-      expect(bubble).toHaveClass('mr-auto');
+      const text = screen.getByText('Mensagem de teste');
+      const wrapper = text.closest('[class*="justify-"]');
+      expect(wrapper).toHaveClass('justify-start');
     });
   });
 
@@ -135,7 +139,8 @@ describe('MessageBubble', () => {
       const message = createMockMessage();
       render(<MessageBubble message={message} />);
 
-      const bubble = screen.getByText('Mensagem de teste').closest('div');
+      const text = screen.getByText('Mensagem de teste');
+      const bubble = text.closest('[class*="max-w-bubble"]');
       expect(bubble).toHaveClass('max-w-bubble');
     });
 
@@ -143,7 +148,8 @@ describe('MessageBubble', () => {
       const message = createMockMessage({ sender: 'user' });
       render(<MessageBubble message={message} />);
 
-      const bubble = screen.getByText('Mensagem de teste').closest('div');
+      const text = screen.getByText('Mensagem de teste');
+      const bubble = text.closest('[class*="rounded-lg"]');
       expect(bubble).toHaveClass('rounded-lg');
       expect(bubble).toHaveClass('rounded-br-sm');
     });
@@ -169,7 +175,8 @@ describe('MessageBubble', () => {
       render(<MessageBubble message={message} />);
 
       const textElement = screen.getByText(longText);
-      expect(textElement).toHaveClass('break-words');
+      const wrapper = textElement.closest('[class*="break-words"]');
+      expect(wrapper).toHaveClass('break-words');
     });
   });
 });

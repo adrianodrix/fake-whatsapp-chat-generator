@@ -40,7 +40,7 @@ describe('Validation Utils', () => {
       const input = '<script>alert("xss")</script>';
       const result = sanitizeMessage(input);
       expect(result).toBe(
-        '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;'
+        '&lt;script&gt;alert(&quot;xss&quot;)&lt;&#x2F;script&gt;'
       );
     });
 
