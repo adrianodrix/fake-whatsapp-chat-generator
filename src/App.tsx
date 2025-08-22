@@ -14,11 +14,19 @@ const ChatApp: React.FC = () => {
   const { profiles, updateUserProfile, updateContactProfile } = useProfiles();
   const [inputValue, setInputValue] = useState('');
   const [showProfiles, setShowProfiles] = useState(false);
+  const [autoToggleSender, setAutoToggleSender] = useState(true);
 
   const handleSendMessage = () => {
     if (inputValue.trim()) {
       actions.addMessage(inputValue);
       setInputValue('');
+
+      // Alternância automática de remetente após envio (configurável)
+      if (autoToggleSender) {
+        actions.setActiveSender(
+          state.activeSender === 'user' ? 'contact' : 'user'
+        );
+      }
     }
   };
 
@@ -48,23 +56,34 @@ const ChatApp: React.FC = () => {
 
   return (
     <div className="h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
-      {/* Botão para adicionar mensagens de exemplo quando não houver mensagens */}
-      {state.messages.length === 0 && (
-        <div className="mb-4 space-x-2">
+      {/* Botões de controle */}
+      <div className="mb-4 space-x-2">
+        {state.messages.length === 0 && (
           <button
             onClick={addExampleMessages}
             className="px-4 py-2 bg-wa-accent text-white rounded-lg hover:bg-wa-secondary transition-colors"
           >
             Carregar conversa de exemplo
           </button>
-          <button
-            onClick={() => setShowProfiles(!showProfiles)}
-            className="px-4 py-2 bg-wa-primary text-white rounded-lg hover:bg-wa-secondary transition-colors"
-          >
-            {showProfiles ? 'Ocultar' : 'Configurar'} Perfis
-          </button>
-        </div>
-      )}
+        )}
+        <button
+          onClick={() => setShowProfiles(!showProfiles)}
+          className="px-4 py-2 bg-wa-primary text-white rounded-lg hover:bg-wa-secondary transition-colors"
+        >
+          {showProfiles ? 'Ocultar' : 'Configurar'} Perfis
+        </button>
+        <button
+          onClick={() => setAutoToggleSender(!autoToggleSender)}
+          className={`px-4 py-2 rounded-lg transition-colors ${
+            autoToggleSender
+              ? 'bg-wa-accent text-white hover:bg-wa-secondary'
+              : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+          }`}
+          title="Alternar remetente automaticamente após enviar mensagem"
+        >
+          Auto-alternar: {autoToggleSender ? 'ON' : 'OFF'}
+        </button>
+      </div>
 
       <div className="w-full max-w-4xl flex gap-4">
         {/* Profile Configuration */}
