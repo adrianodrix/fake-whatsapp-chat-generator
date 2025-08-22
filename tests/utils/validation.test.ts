@@ -7,7 +7,9 @@ import {
   validateFileSize,
   validateName,
   sanitizeString,
+  sanitizeFilename,
   validateUploadFile,
+  validateUploadFileComplete,
 } from '../../src/utils/validation';
 
 describe('Validation Utils', () => {
@@ -86,6 +88,32 @@ describe('Validation Utils', () => {
     });
   });
 
+  describe('sanitizeFilename', () => {
+    it('deve remover caracteres perigosos', () => {
+      expect(sanitizeFilename('test<script>.jpg')).toBe('testscript.jpg');
+      expect(sanitizeFilename('file:with|dangerous?chars*.png')).toBe(
+        'filewithdangerouschars.png'
+      );
+      expect(sanitizeFilename('normal_file.jpeg')).toBe('normal_file.jpeg');
+    });
+
+    it('deve remover caracteres de controle', () => {
+      expect(sanitizeFilename('file\x00\x1f.jpg')).toBe('file.jpg');
+      expect(sanitizeFilename('test\n\r\t.png')).toBe('test___.png');
+    });
+
+    it('deve remover pontos no início e fim', () => {
+      expect(sanitizeFilename('...test.jpg...')).toBe('test.jpg');
+      expect(sanitizeFilename('.hidden.png')).toBe('hidden.png');
+    });
+
+    it('deve limitar tamanho do filename', () => {
+      const longName = 'a'.repeat(300) + '.jpg';
+      const result = sanitizeFilename(longName);
+      expect(result.length).toBeLessThanOrEqual(255);
+    });
+  });
+
   describe('validateUploadFile', () => {
     it('deve validar arquivo completamente válido', () => {
       const validFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
@@ -104,6 +132,122 @@ describe('Validation Utils', () => {
       Object.defineProperty(largeFile, 'size', { value: 11 * 1024 * 1024 });
 
       expect(validateUploadFile(largeFile).isValid).toBe(false);
+    });
+  });
+
+  describe('validateUploadFileComplete - Testes de Segurança', () => {
+    // Helper para criar arquivo com bytes específicos
+    const createFileWithBytes = (
+      bytes: number[],
+      mimeType: string,
+      filename: string
+    ) => {
+      const buffer = new ArrayBuffer(bytes.length);
+      const view = new Uint8Array(buffer);
+      bytes.forEach((byte, index) => {
+        view[index] = byte;
+      });
+      return new File([buffer], filename, { type: mimeType });
+    };
+
+    it('deve aceitar JPEG válido com assinatura correta', async () => {
+      const jpegBytes = [0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10]; // JPEG header
+      const jpegFile = createFileWithBytes(jpegBytes, 'image/jpeg', 'test.jpg');
+
+      const result = await validateUploadFileComplete(jpegFile);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('deve aceitar PNG válido com assinatura correta', async () => {
+      const pngBytes = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]; // PNG header
+      const pngFile = createFileWithBytes(pngBytes, 'image/png', 'test.png');
+
+      const result = await validateUploadFileComplete(pngFile);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('deve aceitar WebP válido com assinatura correta', async () => {
+      const webpBytes = [
+        0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50,
+      ]; // RIFF + WEBP
+      const webpFile = createFileWithBytes(
+        webpBytes,
+        'image/webp',
+        'test.webp'
+      );
+
+      const result = await validateUploadFileComplete(webpFile);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('deve rejeitar arquivo com MIME type falso (spoofing attack)', async () => {
+      // Arquivo .txt com MIME type de JPEG
+      const textBytes = [0x74, 0x65, 0x73, 0x74]; // "test" em ASCII
+      const spoofedFile = createFileWithBytes(
+        textBytes,
+        'image/jpeg',
+        'malicious.jpg'
+      );
+
+      const result = await validateUploadFileComplete(spoofedFile);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('não corresponde ao formato declarado');
+    });
+
+    it('deve rejeitar script mascarado como imagem', async () => {
+      // Script JavaScript com extensão .jpg
+      const scriptBytes = [0x3c, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74]; // "<script"
+      const maliciousFile = createFileWithBytes(
+        scriptBytes,
+        'image/jpeg',
+        'script.jpg'
+      );
+
+      const result = await validateUploadFileComplete(maliciousFile);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('não corresponde ao formato declarado');
+    });
+
+    it('deve rejeitar arquivo executável mascarado como PNG', async () => {
+      // Bytes de executável Windows (MZ header)
+      const exeBytes = [0x4d, 0x5a, 0x90, 0x00]; // MZ header
+      const maliciousFile = createFileWithBytes(
+        exeBytes,
+        'image/png',
+        'virus.png'
+      );
+
+      const result = await validateUploadFileComplete(maliciousFile);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('não corresponde ao formato declarado');
+    });
+
+    it('deve rejeitar WebP com header RIFF correto mas sem WEBP', async () => {
+      // Apenas RIFF sem WEBP
+      const invalidWebpBytes = [
+        0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x41, 0x42, 0x43, 0x44,
+      ];
+      const invalidFile = createFileWithBytes(
+        invalidWebpBytes,
+        'image/webp',
+        'invalid.webp'
+      );
+
+      const result = await validateUploadFileComplete(invalidFile);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('não corresponde ao formato declarado');
+    });
+
+    it('deve validar performance da verificação de assinatura', async () => {
+      const jpegBytes = [0xff, 0xd8, 0xff, 0xe0].concat(Array(1000).fill(0)); // JPEG + padding
+      const jpegFile = createFileWithBytes(jpegBytes, 'image/jpeg', 'test.jpg');
+
+      const startTime = performance.now();
+      await validateUploadFileComplete(jpegFile);
+      const endTime = performance.now();
+
+      const processingTime = endTime - startTime;
+      expect(processingTime).toBeLessThan(50); // Deve ser rápido (< 50ms)
     });
   });
 });
