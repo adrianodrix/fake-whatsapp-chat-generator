@@ -3,6 +3,8 @@
  * Implementa verificações de cores, layout e pixel-perfect matching
  */
 
+import React from 'react';
+
 interface ColorValidation {
   element: string;
   expected: string;
