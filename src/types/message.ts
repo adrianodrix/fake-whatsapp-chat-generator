@@ -2,6 +2,8 @@
  * Tipos relacionados a mensagens e chat do WhatsApp
  */
 
+import type { ChatProfiles } from './profile';
+
 export type MessageStatus = 'sent' | 'delivered' | 'read';
 
 export type MessageSender = 'user' | 'contact';
@@ -36,4 +38,6 @@ export interface ChatActions {
 export interface ChatContextType {
   state: ChatState;
   actions: ChatActions;
+  profiles: ChatProfiles;
+  setProfiles: (profiles: ChatProfiles) => void;
 }

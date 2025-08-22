@@ -1,4 +1,5 @@
-import React, { useState, useMemo, ReactNode } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import type {
   Message,
   MessageSender,
@@ -8,6 +9,7 @@ import type {
 } from '../types/message';
 import type { ChatProfiles } from '../types/profile';
 import { ChatContext } from './ChatContextDefinition';
+import { loadProfiles, saveProfiles } from '../utils/storage';
 
 interface ChatProviderProps {
   children: ReactNode;
@@ -33,6 +35,20 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   const [activeSender, setActiveSender] = useState<MessageSender>('user');
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [profiles, setProfiles] = useState<ChatProfiles>(initialProfiles);
+
+  // Carrega perfis do localStorage na inicialização
+  useEffect(() => {
+    const storedProfiles = loadProfiles();
+    if (storedProfiles) {
+      setProfiles(storedProfiles);
+    }
+  }, []);
+
+  // Função para atualizar perfis com persistência
+  const updateProfiles = (newProfiles: ChatProfiles) => {
+    setProfiles(newProfiles);
+    saveProfiles(newProfiles);
+  };
 
   const actions = useMemo<ChatActions>(
     () => ({
@@ -85,7 +101,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
       state,
       actions,
       profiles,
-      setProfiles,
+      setProfiles: updateProfiles,
     }),
     [state, actions, profiles]
   );

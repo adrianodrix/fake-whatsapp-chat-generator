@@ -239,7 +239,12 @@ export class DesignTokenValidator {
     categories: Record<TokenCategory, Array<Record<string, unknown>>>
   ): void {
     for (const [, value] of Object.entries(obj)) {
-      if (value && typeof value === 'object' && 'token' in value) {
+      if (
+        value &&
+        typeof value === 'object' &&
+        'token' in value &&
+        'category' in value
+      ) {
         categories[value.category as TokenCategory].push(value);
       } else if (value && typeof value === 'object') {
         this.collectTokensRecursively(
@@ -302,7 +307,9 @@ export class DesignTokenValidator {
       cssProperty = (tokenDef.token as string).includes('w-')
         ? 'width'
         : 'height';
-      currentValue = computedStyle[cssProperty];
+      currentValue = computedStyle[
+        cssProperty as keyof CSSStyleDeclaration
+      ] as string;
     }
 
     const isValid = this.compareValues(
