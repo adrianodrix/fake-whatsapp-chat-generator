@@ -9,6 +9,7 @@
 **so that** I can build conversations efficiently.
 
 ### Acceptance Criteria
+
 1: Campo de input funcional que adiciona mensagem ao pressionar Enter
 2: Shift+Enter cria nova linha dentro da mensagem
 3: Mensagem é adicionada com timestamp atual por padrão
@@ -25,6 +26,7 @@
 **so that** I can make quick adjustments without disrupting my workflow.
 
 ### Acceptance Criteria
+
 1: Hover em desktop mostra botão de edição sutil
 2: Long press em mobile ativa modo de edição
 3: Popover aparece com campos para texto, hora e status
@@ -34,21 +36,25 @@
 7: Seletor de status com as 3 opções (enviado, entregue, lido)
 8: Animação suave de entrada/saída do popover
 
-## Story 2.3: Sender Toggle System
+## Story 2.3: Advanced Sender Features & Mobile Gestures
 
 **As a** user,
-**I want** to quickly switch between senders while creating messages,
-**so that** I can create natural conversation flows.
+**I want** advanced sender switching capabilities with mobile gestures,
+**so that** I can create conversations more efficiently on all devices.
 
 ### Acceptance Criteria
-1: Botão flutuante aparece ao lado do input em desktop
-2: Tab alterna entre remetentes (atalho de teclado)
-3: Indicador visual mostra remetente ativo atual
-4: Swipe gesture em mobile para alternar (opcional)
-5: Última mensagem mostra indicador de quem enviará próxima
-6: Toggle mantém texto digitado no input
-7: Preferência de auto-alternância configurável
-8: Feedback visual imediato na mudança (animação de 200ms)
+
+1: Swipe gestures na área do input para alternar remetente
+2: Long press no botão toggle para configurações rápidas
+3: Haptic feedback em dispositivos compatíveis (opcional)
+4: Auto-toggle preference configurável e persistida
+5: Configuração de shortcuts personalizáveis pelo usuário
+6: Visual themes para diferentes senders (cores personalizáveis)
+7: Enhanced testing para touch interactions
+8: Performance monitoring para gestures
+9: Accessibility improvements para screen readers
+
+**Note:** Basic toggle functionality (Tab key, visual button, sender indicator) already implemented in Story 2.1
 
 ## Story 2.4: Timestamp & Status Management
 
@@ -57,6 +63,7 @@
 **so that** I can create realistic conversation timelines.
 
 ### Acceptance Criteria
+
 1: Date picker para selecionar dia da mensagem
 2: Time picker para horário específico (formato 24h)
 3: Opção "agora" para timestamp atual

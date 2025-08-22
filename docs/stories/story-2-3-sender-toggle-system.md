@@ -1,65 +1,131 @@
-# Story 2.3: Sender Toggle System - Brownfield Addition
+# Story 2.3: Advanced Sender Features & Mobile Gestures
 
 ## User Story
 
-**As a** usuário,  
-**I want** alternar rapidamente entre remetentes criando mensagens,  
-**So that** posso criar fluxos naturais de conversa.
+**As a** usuário,
+**I want** funcionalidades avançadas de alternância de remetente,
+**So that** posso criar conversas de forma ainda mais eficiente.
 
 ## Story Context
 
-**Existing System Integration:**
-- **Integrates with:** ChatContext.activeSender, MessageInput component, keyboard handling
-- **Technology:** React useEffect para shortcuts, CSS transitions para feedback
-- **Follows pattern:** Context actions + keyboard shortcuts pattern
-- **Touch points:** ChatContext.toggleSender action, visual indicators, mobile gestures
+**Building Upon:** Story 2.1 MessageInput já implementa basic toggle
+**Enhancement Focus:** Adicionar features avançadas não implementadas
+**Technology:** React Touch events, localStorage preferences, advanced animations
+**Current Status:** Basic toggle (Tab key + button) implemented in MessageInput.tsx
 
 ## Acceptance Criteria
 
-### Functional Requirements
-1. **Botão flutuante** aparece ao lado input em desktop
-2. **Tab alterna** remetentes (atalho teclado) mantendo texto input
-3. **Indicador visual** mostra remetente ativo atual claramente
+### Mobile Enhancement
 
-### Integration Requirements
-4. **Última mensagem** mostra indicador de quem enviará próxima
-5. **Toggle mantém** texto digitado no input preservado
-6. **Integração ChatContext** usando toggleSender action existente
+1. **Swipe gestures** na área do input para alternar remetente
+2. **Long press** no botão toggle para configurações rápidas
+3. **Haptic feedback** em dispositivos compatíveis (opcional)
 
-### Quality Requirements
-7. **Swipe gesture** mobile para alternar (opcional nice-to-have)
-8. **Feedback visual** imediato na mudança (animação 200ms)
-9. **Preferência auto-alternância** configurável e persistida
+### Advanced Settings
 
-## Technical Notes
+4. **Auto-toggle preference** configurável e persistida
+5. **Configuração de shortcuts** personalizáveis pelo usuário
+6. **Visual themes** para diferentes senders (cores personalizáveis)
 
-- **Integration Approach:** Usar ChatContext.toggleSender, keyboard event listeners
-- **Existing Pattern Reference:** Keyboard shortcuts pattern da arquitetura
-- **Key Constraints:** Performance gestures, feedback visual imediato
+### Developer Experience
+
+7. **Enhanced testing** para touch interactions
+8. **Performance monitoring** para gestures
+9. **Accessibility improvements** para screen readers
+
+## Dev Notes
+
+**Current Implementation Status:**
+
+- ✅ Tab toggle: implementado em MessageInput.tsx:56-59
+- ✅ Visual button: implementado em MessageInput.tsx:82-98
+- ✅ Sender indicator: implementado em MessageInput.tsx:197-200
+
+**Files to Create/Modify:**
+
+- `/src/hooks/useGestures.ts` - Custom hook for touch gestures
+- `/src/hooks/useSenderPreferences.ts` - Preference management
+- `/src/components/chat/MessageInput/MessageInput.tsx` - Add gesture support
+- `/src/utils/gestures.ts` - Touch gesture utilities
+- `/src/types/preferences.ts` - Type definitions for user preferences
+
+**ChatContext Integration:**
+
+- Add missing `toggleSender` method to ChatContext actions
+- Use existing `setActiveSender` for base functionality
+- Enhance with gesture and preference capabilities
+
+**Testing Strategy:**
+
+- Mock touch events with @testing-library/react
+- Test localStorage persistence with jest-localstorage-mock
+- Validate gesture recognition accuracy (swipe direction/distance)
+- Accessibility testing with screen readers and keyboard navigation
+- Performance testing for gesture responsiveness
+
+## Technical Implementation Details
+
+**TouchEvent Integration:**
+
+```typescript
+// Touch gesture handling pattern
+const handleTouchStart = (e: React.TouchEvent) => {
+  // Record initial touch position and timestamp
+};
+const handleTouchMove = (e: React.TouchEvent) => {
+  // Track movement for swipe detection
+};
+const handleTouchEnd = (e: React.TouchEvent) => {
+  // Process gesture and trigger action if valid swipe
+};
+```
+
+**Preference Persistence Schema:**
+
+```typescript
+interface SenderPreferences {
+  autoToggle: boolean;
+  customShortcuts: string[];
+  senderColors: { user: string; contact: string };
+  gesturesEnabled: boolean;
+  swipeThreshold: number;
+}
+```
+
+**Animation Specifications:**
+
+- Swipe feedback: 150ms ease-out transition
+- Color theme changes: 200ms fade transition
+- Haptic feedback: light impact on iOS, vibrate(50) on Android
 
 ## Definition of Done
 
-- ✅ **Tab shortcut** funcionando para toggle
-- ✅ **Botão flutuante** desktop com visual clear
-- ✅ **Indicador visual** remetente ativo
-- ✅ **Texto input** preservado durante toggle
-- ✅ **Animação feedback** 200ms suave
-- ✅ **Mobile gestures** implementados ou documentados
+- ✅ **Swipe gestures** working on touch devices
+- ✅ **Long press** configurações implementadas
+- ✅ **Preferences** persistidas em localStorage
+- ✅ **Enhanced testing** suite implementada
+- ✅ **Accessibility** melhorias validadas
+- ✅ **Performance** otimizada para gestures
+- ✅ **Missing toggleSender** method added to ChatContext
+- ✅ **Mobile haptic feedback** implementado (opcional)
 
 ## Risk and Compatibility Check
 
 **Minimal Risk Assessment:**
-- **Primary Risk:** Keyboard shortcuts podem conflitar com browser/OS
-- **Mitigation:** Usar shortcuts não conflitantes, permitir customização
-- **Rollback:** Usar apenas botão visual, remover shortcuts
+
+- **Primary Risk:** Touch events podem interferir com scroll nativo
+- **Mitigation:** Gestão cuidadosa de preventDefault(), swipe threshold tuning
+- **Rollback:** Disable gestures, manter funcionalidade básica existente
 
 **Compatibility Verification:**
-- ✅ **No breaking changes:** Usa ChatContext state existente
-- ✅ **Database changes:** Preferências em localStorage apenas
-- ✅ **UI changes:** Seguem padrões visual feedback estabelecidos
-- ✅ **Performance impact:** Minimal, apenas event listeners
+
+- ✅ **No breaking changes:** Builds upon existing MessageInput implementation
+- ✅ **Browser compatibility:** Touch events suportados por target browsers
+- ✅ **Performance impact:** Gesture detection otimizada, debounced
+- ✅ **Accessibility:** Mantém keyboard navigation + screen reader support
 
 ---
 
-*Epic 2: Message Management & Editing*  
-*Story 2.3 criada pelo John (PM) - 21/08/2025*
+_Epic 2: Message Management & Editing_  
+_Story 2.3 revisada pelo John (PM) - 22/08/2025_
+_Original story redefined based on architectural analysis_
