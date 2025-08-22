@@ -223,6 +223,94 @@ export const MessageEditPopover: React.FC<Props> = ({
 
 ---
 
+## Dev Agent Record
+
+### Tasks Completed
+
+- [x] Instalar dependency @floating-ui/react
+- [x] Criar hook useClickOutside para detecção de cliques fora
+- [x] Criar hook useLongPress para mobile touch handling
+- [x] Criar componente Icon reutilizável
+- [x] Implementar componente MessageEditPopover completo
+- [x] Modificar MessageBubble para adicionar triggers de edição
+- [x] Modificar ChatContainer para integrar popover
+- [x] Adicionar validação de timestamp em utils/validation.ts
+- [x] Implementar hook useMessageEdit para state management
+- [x] Criar testes unitários para hooks (13 testes)
+- [x] Criar testes para MessageEditPopover (12 testes)
+- [x] Criar testes de integração (4 testes)
+- [x] Criar testes E2E (8 cenários)
+- [x] Executar validações de tipo e lint
+
+### Agent Model Used
+
+Claude Sonnet 4 (claude-sonnet-4-20250514)
+
+### File List
+
+#### Files Created:
+
+- `src/hooks/useClickOutside.ts` - Hook para detectar cliques fora de elemento
+- `src/hooks/useLongPress.ts` - Hook para long press em mobile
+- `src/hooks/useMessageEdit.ts` - Hook para gerenciar estado de edição
+- `src/hooks/index.ts` - Barrel exports para hooks
+- `src/components/ui/Icon/Icon.tsx` - Componente de ícone reutilizável
+- `src/components/ui/Icon/Icon.types.ts` - Types para Icon component
+- `src/components/ui/Icon/index.ts` - Export para Icon
+- `src/components/chat/MessageEditPopover/MessageEditPopover.tsx` - Componente principal de edição
+- `src/components/chat/MessageEditPopover/MessageEditPopover.types.ts` - Types para popover
+- `src/components/chat/MessageEditPopover/index.ts` - Export para popover
+- `src/utils/formatting.ts` - Utilitários de formatação de data/hora
+- `tests/hooks/useClickOutside.test.ts` - Testes para useClickOutside (5 testes)
+- `tests/hooks/useLongPress.test.ts` - Testes para useLongPress (8 testes)
+- `tests/components/chat/MessageEditPopover.test.tsx` - Testes para popover (12 testes)
+- `tests/components/chat/MessageBubble-linebreaks.test.tsx` - Testes para quebras de linha (4 testes)
+- `tests/integration/message-editing.test.tsx` - Testes de integração (4 testes)
+- `tests/e2e/inline-editing.spec.ts` - Testes E2E (8 cenários)
+
+#### Files Modified:
+
+- `src/components/ui/index.ts` - Added Icon exports
+- `src/components/chat/index.ts` - Added MessageEditPopover exports
+- `src/components/chat/MessageBubble/MessageBubble.tsx` - Added edit triggers and hover state
+- `src/components/chat/ChatContainer/ChatContainer.tsx` - Integrated editing functionality
+- `src/utils/validation.ts` - Added validateTime function
+- `src/hooks/index.ts` - Added new hook exports
+- `vite.config.ts` - Added path aliases configuration
+- `package.json` - Added @floating-ui/react dependency
+
+### Completion Notes
+
+- ✅ Todos os acceptance criteria foram implementados
+- ✅ Funcionalidade testada com >80% cobertura
+- ✅ Integration with existing ChatContext mantida
+- ✅ Mobile e desktop behaviors funcionando
+- ✅ Keyboard accessibility implementada
+- ✅ Validação robusta de inputs
+- ✅ Error handling apropriado
+- ✅ Performance otimizada com memoization
+
+### Change Log
+
+- **22/08/2025**: Story implementation completa
+  - Floating UI integration para positioning robusto
+  - Hook composition pattern para interactions complexas
+  - Comprehensive testing strategy com unit, integration, e E2E
+  - Full accessibility support com keyboard navigation
+  - Responsive design para mobile e desktop
+- **22/08/2025**: Bug fixes aplicados
+  - Fix: Path aliases configuration no vite.config.ts
+  - Fix: Barrel export hooks corrigido para incluir apenas hooks existentes
+  - Fix: ESLint warnings removidos com tipos específicos
+  - Fix: Line breaks preservation em mensagens com classe whitespace-pre-wrap
+
+### Status
+
+**Ready for Review**
+
+---
+
 _Epic 2: Message Management & Editing_  
 _Story 2.2 criada pelo John (PM) - 21/08/2025_
 _Story 2.2 revisada pelo John (PM) - 22/08/2025_
+_Story 2.2 implementada pelo James (Dev) - 22/08/2025_
