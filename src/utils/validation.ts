@@ -21,7 +21,9 @@ export interface ValidationResult {
 /**
  * Verifica a assinatura (magic numbers) do arquivo
  */
-async function validateFileSignature(file: File): Promise<ValidationResult> {
+export async function validateFileSignature(
+  file: File
+): Promise<ValidationResult> {
   return new Promise((resolve) => {
     const reader = new FileReader();
 
