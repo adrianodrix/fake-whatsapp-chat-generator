@@ -1,35 +1,97 @@
-import { useState } from 'react';
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
-import './App.css';
+import React, { useState } from 'react';
+import { ChatProvider } from './contexts/ChatContext';
+import { useChat } from './hooks/useChat';
+import { ChatContainer } from './components/chat';
+import type { ChatProfiles } from './types/profile';
 
-function App() {
-  const [count, setCount] = useState(0);
+/**
+ * Componente interno que usa o ChatContext
+ */
+const ChatApp: React.FC = () => {
+  const { state, actions } = useChat();
+  const [inputValue, setInputValue] = useState('');
+  const [profiles] = useState<ChatProfiles>({
+    user: {
+      id: 'user',
+      name: 'Você',
+      initials: 'VC',
+      isOnline: true,
+    },
+    contact: {
+      id: 'contact',
+      name: 'João Silva',
+      initials: 'JS',
+      isOnline: true,
+    },
+  });
+
+  const handleSendMessage = () => {
+    if (inputValue.trim()) {
+      actions.addMessage(inputValue);
+      setInputValue('');
+    }
+  };
+
+  const handleSenderToggle = () => {
+    actions.setActiveSender(state.activeSender === 'user' ? 'contact' : 'user');
+  };
+
+  // Função para adicionar mensagens de exemplo
+  const addExampleMessages = () => {
+    const exampleMessages = [
+      { text: 'Oi! Como você está?', sender: 'contact' as const },
+      { text: 'Olá! Estou bem, obrigado! E você?', sender: 'user' as const },
+      { text: 'Também estou bem! Que bom saber.', sender: 'contact' as const },
+      {
+        text: 'Vamos marcar um café qualquer dia desses?',
+        sender: 'user' as const,
+      },
+      { text: 'Claro! Seria ótimo! 😊', sender: 'contact' as const },
+    ];
+
+    exampleMessages.forEach((msg, index) => {
+      setTimeout(() => {
+        actions.addMessage(msg.text, msg.sender);
+      }, index * 200);
+    });
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+    <div className="h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
+      {/* Botão para adicionar mensagens de exemplo quando não houver mensagens */}
+      {state.messages.length === 0 && (
+        <button
+          onClick={addExampleMessages}
+          className="mb-4 px-4 py-2 bg-wa-accent text-white rounded-lg hover:bg-wa-secondary transition-colors"
+        >
+          Carregar conversa de exemplo
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+      )}
+
+      <div className="w-full max-w-md bg-white rounded-lg shadow-xl overflow-hidden">
+        <ChatContainer
+          messages={state.messages}
+          profiles={profiles}
+          activeSender={state.activeSender}
+          inputValue={inputValue}
+          onInputChange={setInputValue}
+          onSendMessage={handleSendMessage}
+          onSenderToggle={handleSenderToggle}
+        />
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    </div>
   );
-}
+};
+
+/**
+ * App principal com providers
+ */
+const App: React.FC = () => {
+  return (
+    <ChatProvider>
+      <ChatApp />
+    </ChatProvider>
+  );
+};
 
 export default App;
