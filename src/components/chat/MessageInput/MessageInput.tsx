@@ -1,5 +1,8 @@
-import React, { memo, useRef, useEffect } from 'react';
+import React, { memo, useRef, useEffect, useState, useCallback } from 'react';
 import type { MessageInputProps } from './MessageInput.types';
+import { useDebounce } from '../../../hooks/useDebounce';
+import { useIsMobile } from '../../../hooks/useIsMobile';
+import { validateMessage } from '../../../utils/validation';
 
 /**
  * Input de nova mensagem com toggle de remetente
@@ -16,6 +19,9 @@ export const MessageInput: React.FC<MessageInputProps> = memo(
     placeholder = 'Digite uma mensagem',
   }) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const [validationError, setValidationError] = useState<string | null>(null);
+    const isMobile = useIsMobile();
+    const debouncedValue = useDebounce(value, 300);
 
     // Auto-resize textarea
     useEffect(() => {
@@ -26,23 +32,48 @@ export const MessageInput: React.FC<MessageInputProps> = memo(
       }
     }, [value]);
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        if (value.trim()) {
-          onSend();
-        }
+    // Validação com debounce
+    useEffect(() => {
+      if (debouncedValue.trim()) {
+        const result = validateMessage(debouncedValue);
+        setValidationError(result.isValid ? null : result.error);
+      } else {
+        setValidationError(null);
       }
-    };
+    }, [debouncedValue]);
 
-    const handleSend = () => {
-      if (value.trim() && !disabled) {
+    const handleKeyDown = useCallback(
+      (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        // Enter sem Shift envia mensagem
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          if (value.trim() && !validationError) {
+            onSend();
+          }
+        }
+        // Shift+Enter permite nova linha (comportamento padrão do textarea)
+        // Tab alterna remetente
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          onSenderToggle();
+        }
+      },
+      [value, validationError, onSend, onSenderToggle]
+    );
+
+    const handleSend = useCallback(() => {
+      if (value.trim() && !disabled && !validationError) {
         onSend();
       }
-    };
+    }, [value, disabled, validationError, onSend]);
 
     const senderColor =
       activeSender === 'user' ? 'text-wa-accent' : 'text-wa-secondary';
+
+    // Mostrar contador de caracteres após 1000 caracteres
+    const showCharCounter = value.length > 1000;
+    const charCounterColor =
+      value.length > 4096 ? 'text-red-500' : 'text-wa-text-secondary';
 
     return (
       <div className="bg-wa-bg-pattern p-3 border-t border-gray-200">
@@ -67,8 +98,12 @@ export const MessageInput: React.FC<MessageInputProps> = memo(
           </button>
 
           {/* Input container */}
-          <div className="flex-1 bg-white rounded-full shadow-sm border border-gray-200 overflow-hidden">
-            <div className="flex items-end">
+          <div
+            className={`flex-1 bg-white rounded-full shadow-sm border overflow-hidden transition-colors ${
+              validationError ? 'border-red-400' : 'border-gray-200'
+            }`}
+          >
+            <div className="flex items-end relative">
               {/* Emoji button */}
               <button
                 className="flex-shrink-0 p-3 text-wa-text-secondary hover:text-wa-text-primary transition-colors"
@@ -123,34 +158,49 @@ export const MessageInput: React.FC<MessageInputProps> = memo(
                   />
                 </svg>
               </button>
+
+              {/* Character counter */}
+              {showCharCounter && (
+                <div
+                  className={`absolute right-3 bottom-0 text-xs ${charCounterColor}`}
+                >
+                  {value.length}/4096
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Send button */}
-          <button
-            onClick={handleSend}
-            disabled={!value.trim() || disabled}
-            className={`
-            flex-shrink-0 p-3 rounded-full transition-all
-            ${
-              value.trim() && !disabled
-                ? 'bg-wa-accent text-white hover:bg-wa-secondary shadow-md'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            }
-          `}
-            aria-label="Enviar mensagem"
-          >
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-            </svg>
-          </button>
+          {/* Send button - sempre visível em mobile, oculto em desktop quando vazio */}
+          {(isMobile || value.trim()) && (
+            <button
+              onClick={handleSend}
+              disabled={!value.trim() || disabled || !!validationError}
+              className={`
+              flex-shrink-0 p-3 rounded-full transition-all
+              ${
+                value.trim() && !disabled && !validationError
+                  ? 'bg-wa-accent text-white hover:bg-wa-secondary shadow-md'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              }
+            `}
+              aria-label="Enviar mensagem"
+            >
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+              </svg>
+            </button>
+          )}
         </div>
 
-        {/* Sender indicator */}
-        <div className="mt-2 text-center">
+        {/* Sender indicator e validation error */}
+        <div className="mt-2 flex justify-between items-center px-2">
           <span className={`text-xs ${senderColor} font-medium`}>
-            Enviando como: {activeSender === 'user' ? 'Você' : 'Contato'}
+            Enviando como: {activeSender === 'user' ? 'Você' : 'Contato'} (Tab
+            para alternar)
           </span>
+          {validationError && (
+            <span className="text-xs text-red-500">{validationError}</span>
+          )}
         </div>
       </div>
     );
