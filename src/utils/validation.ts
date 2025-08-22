@@ -6,9 +6,97 @@
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB em bytes
 
+// Magic numbers para verificação de assinatura de arquivo
+const FILE_SIGNATURES = {
+  jpeg: [0xff, 0xd8, 0xff],
+  png: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
+  webp: [0x52, 0x49, 0x46, 0x46], // RIFF (WebP tem mais verificações específicas)
+} as const;
+
 export interface ValidationResult {
   isValid: boolean;
   error?: string;
+}
+
+/**
+ * Verifica a assinatura (magic numbers) do arquivo
+ */
+async function validateFileSignature(file: File): Promise<ValidationResult> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      const arrayBuffer = e.target?.result as ArrayBuffer;
+      if (!arrayBuffer) {
+        resolve({
+          isValid: false,
+          error: 'Erro ao ler arquivo para verificação de assinatura.',
+        });
+        return;
+      }
+
+      const bytes = new Uint8Array(arrayBuffer.slice(0, 12)); // Lê primeiros 12 bytes
+
+      // Verifica JPEG
+      if (file.type === 'image/jpeg') {
+        const jpegSig = FILE_SIGNATURES.jpeg;
+        if (
+          bytes.length >= jpegSig.length &&
+          bytes.slice(0, jpegSig.length).every((byte, i) => byte === jpegSig[i])
+        ) {
+          resolve({ isValid: true });
+          return;
+        }
+      }
+
+      // Verifica PNG
+      if (file.type === 'image/png') {
+        const pngSig = FILE_SIGNATURES.png;
+        if (
+          bytes.length >= pngSig.length &&
+          bytes.slice(0, pngSig.length).every((byte, i) => byte === pngSig[i])
+        ) {
+          resolve({ isValid: true });
+          return;
+        }
+      }
+
+      // Verifica WebP (RIFF + WEBP)
+      if (file.type === 'image/webp') {
+        const riffSig = FILE_SIGNATURES.webp;
+        if (
+          bytes.length >= 12 &&
+          bytes
+            .slice(0, riffSig.length)
+            .every((byte, i) => byte === riffSig[i]) &&
+          bytes[8] === 0x57 &&
+          bytes[9] === 0x45 &&
+          bytes[10] === 0x42 &&
+          bytes[11] === 0x50
+        ) {
+          // "WEBP"
+          resolve({ isValid: true });
+          return;
+        }
+      }
+
+      resolve({
+        isValid: false,
+        error:
+          'Arquivo não corresponde ao formato declarado. Possível tentativa de bypass de segurança.',
+      });
+    };
+
+    reader.onerror = () => {
+      resolve({
+        isValid: false,
+        error: 'Erro ao verificar assinatura do arquivo.',
+      });
+    };
+
+    // Lê apenas os primeiros 12 bytes para performance
+    reader.readAsArrayBuffer(file.slice(0, 12));
+  });
 }
 
 /**
@@ -78,6 +166,26 @@ export function sanitizeString(input: string): string {
 }
 
 /**
+ * Sanitiza nome de arquivo removendo caracteres perigosos
+ */
+export function sanitizeFilename(filename: string): string {
+  return filename
+    .replace(/[<>:"/\\|?*]/g, '') // Remove caracteres perigosos
+    .replace(/[\n\r\t]/g, '_') // Substitui quebras de linha e tabs por underscore
+    .split('') // Converte para array de caracteres
+    .filter((char) => {
+      const code = char.charCodeAt(0);
+      // Remove caracteres de controle (0-31 e 128-159)
+      return !(code <= 31 || (code >= 128 && code <= 159));
+    })
+    .join('') // Reconstrói a string
+    .replace(/^\.+/, '') // Remove pontos no início
+    .replace(/\.+$/, '') // Remove pontos no final
+    .replace(/\s+/g, '_') // Substitui espaços por underscore
+    .substring(0, 255); // Limita tamanho
+}
+
+/**
  * Valida texto de mensagem
  */
 export function validateMessage(text: string): ValidationResult {
@@ -106,7 +214,7 @@ export function sanitizeMessage(text: string): string {
 }
 
 /**
- * Validação completa do arquivo de upload
+ * Validação completa do arquivo de upload (síncrona)
  */
 export function validateUploadFile(file: File): ValidationResult {
   const mimeValidation = validateMimeType(file);
@@ -114,6 +222,23 @@ export function validateUploadFile(file: File): ValidationResult {
 
   const sizeValidation = validateFileSize(file);
   if (!sizeValidation.isValid) return sizeValidation;
+
+  return { isValid: true };
+}
+
+/**
+ * Validação completa do arquivo com verificação de assinatura (assíncrona)
+ */
+export async function validateUploadFileComplete(
+  file: File
+): Promise<ValidationResult> {
+  // Validações básicas primeiro
+  const basicValidation = validateUploadFile(file);
+  if (!basicValidation.isValid) return basicValidation;
+
+  // Verificação de assinatura de arquivo
+  const signatureValidation = await validateFileSignature(file);
+  if (!signatureValidation.isValid) return signatureValidation;
 
   return { isValid: true };
 }
