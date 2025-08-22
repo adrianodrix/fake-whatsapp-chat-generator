@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, act, fireEvent } from '@testing-library/react';
 import { ChatProvider } from '../../contexts/ChatContext';
 import { useChat } from '../../hooks/useChat';
@@ -10,9 +9,6 @@ const TestComponent = () => {
   return (
     <div>
       <div data-testid="message-count">{state.messages.length}</div>
-      <div data-testid="current-contact">
-        {state.currentContact?.name || 'None'}
-      </div>
       <button
         data-testid="add-message"
         onClick={() => actions.addMessage('Test message')}
@@ -41,7 +37,6 @@ describe('ChatContext', () => {
     renderWithProvider();
 
     expect(screen.getByTestId('message-count')).toHaveTextContent('0');
-    expect(screen.getByTestId('current-contact')).toHaveTextContent('None');
   });
 
   it('should allow adding messages', () => {

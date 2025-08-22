@@ -5,7 +5,7 @@ describe('Validation Utils', () => {
     it('should validate correct message', () => {
       const result = validateMessage('Hello world');
       expect(result.isValid).toBe(true);
-      expect(result.error).toBeNull();
+      expect(result.error).toBeUndefined();
     });
 
     it('should reject empty message', () => {
@@ -31,7 +31,7 @@ describe('Validation Utils', () => {
       const maxMessage = 'a'.repeat(4096);
       const result = validateMessage(maxMessage);
       expect(result.isValid).toBe(true);
-      expect(result.error).toBeNull();
+      expect(result.error).toBeUndefined();
     });
   });
 

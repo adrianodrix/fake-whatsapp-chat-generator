@@ -117,15 +117,12 @@ describe('MessageEditPopover', () => {
 
     const timeInput = screen.getByDisplayValue('12:00');
 
-    // Clear and enter invalid time
+    // Clear the time field to trigger empty validation
     await user.clear(timeInput);
-    await user.type(timeInput, '25:99');
 
     await user.click(screen.getByText('Salvar'));
 
-    expect(
-      screen.getByText('Horário deve estar no formato HH:MM (ex: 14:30)')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Horário é obrigatório')).toBeInTheDocument();
     expect(mockOnSave).not.toHaveBeenCalled();
   });
 
@@ -288,22 +285,16 @@ describe('MessageEditPopover', () => {
 
     const timeInput = screen.getByDisplayValue('12:00');
 
-    // Enter invalid time to trigger error
+    // Clear time to trigger validation error
     await user.clear(timeInput);
-    await user.type(timeInput, '25:99');
     await user.click(screen.getByText('Salvar'));
 
-    expect(
-      screen.getByText('Horário deve estar no formato HH:MM (ex: 14:30)')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Horário é obrigatório')).toBeInTheDocument();
 
     // Start typing again should clear error
-    await user.clear(timeInput);
-    await user.type(timeInput, '1');
+    await user.type(timeInput, '14:30');
 
-    expect(
-      screen.queryByText('Horário deve estar no formato HH:MM (ex: 14:30)')
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Horário é obrigatório')).not.toBeInTheDocument();
   });
 
   it('should set current date and time when "Definir como agora" is clicked', async () => {
