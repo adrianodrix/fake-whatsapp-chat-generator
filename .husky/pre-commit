@@ -1,1 +1,14 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run lint-staged for staged files
 npx lint-staged
+
+# Run type check
+npm run type-check
+
+# Run tests (only if test files were changed or if any source files were changed)
+if git diff --cached --name-only | grep -E '\.(ts|tsx|js|jsx)$' > /dev/null; then
+  echo "Running tests due to source code changes..."
+  npm test
+fi

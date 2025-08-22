@@ -68,9 +68,17 @@ export const ChatProvider: React.FC<ChatProviderProps> = React.memo(
         setMessages((prev) => {
           const newMessages = [...prev, newMessage];
           // Ordenação cronológica automática baseada em timestamp
-          return newMessages.sort(
-            (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
-          );
+          return newMessages.sort((a, b) => {
+            const timeA =
+              a.timestamp instanceof Date
+                ? a.timestamp.getTime()
+                : new Date(a.timestamp).getTime();
+            const timeB =
+              b.timestamp instanceof Date
+                ? b.timestamp.getTime()
+                : new Date(b.timestamp).getTime();
+            return timeA - timeB;
+          });
         });
       },
       [activeSender]
