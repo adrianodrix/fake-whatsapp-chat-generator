@@ -59,7 +59,7 @@ const ChatApp: React.FC = () => {
           </button>
           <button
             onClick={() => setShowProfiles(!showProfiles)}
-            className="px-4 py-2 bg-wa-primary text-white rounded-lg hover:bg-wa-primary-dark transition-colors"
+            className="px-4 py-2 bg-wa-primary text-white rounded-lg hover:bg-wa-secondary transition-colors"
           >
             {showProfiles ? 'Ocultar' : 'Configurar'} Perfis
           </button>
@@ -86,7 +86,7 @@ const ChatApp: React.FC = () => {
         )}
 
         {/* Chat Container */}
-        <div className="flex-1 max-w-md bg-white rounded-lg shadow-xl overflow-hidden">
+        <div className="flex-1 max-w-md h-[600px] bg-white rounded-lg shadow-xl overflow-hidden">
           <ChatContainer
             messages={state.messages}
             profiles={profiles}
