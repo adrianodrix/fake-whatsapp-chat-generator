@@ -64,7 +64,54 @@
 - ✅ **Development impact:** Positive - catches issues earlier
 - ✅ **Performance impact:** Minimal - runs only on commit/CI
 
+## Status
+
+Em Desenvolvimento - Pending Implementation
+
+## Tasks/Subtasks
+
+- [ ] Configurar Jest + React Testing Library
+- [ ] Configurar scripts de teste no package.json
+- [ ] Definir coverage thresholds (80% mínimo)
+- [ ] Configurar GitHub Actions workflow para testes
+- [ ] Configurar coverage reporting no CI
+- [ ] Configurar branch protection rules
+- [ ] Configurar pre-commit hooks
+- [ ] Criar estrutura de arquivos de teste
+- [ ] Configurar testing utilities
+- [ ] Criar testes de exemplo
+- [ ] Documentar guidelines de teste
+
+## File List
+
+**Arquivos a serem criados/modificados:**
+
+- `jest.config.js` - Configuração Jest
+- `package.json` - Scripts de teste e dependências
+- `.github/workflows/test.yml` - CI pipeline
+- `src/setupTests.ts` - Setup global de testes
+- `src/__tests__/` - Estrutura de diretórios de teste
+- `docs/testing-guidelines.md` - Documentação
+
+## Dev Agent Record
+
+### Tasks
+
+- [ ] Lista será atualizada durante implementação
+
+### Agent Model Used
+
+[A ser preenchido durante implementação]
+
+### Debug Log References
+
+[A ser preenchido se necessário]
+
+## Change Log
+
+[A ser preenchido durante implementação]
+
 ---
 
 _Epic 1: Foundation & Core Chat Interface_  
-_Story 1.5 created by John (PM) - 22/08/2025_
+_Story 1.5 criada pelo John (PM) - 22/08/2025_
