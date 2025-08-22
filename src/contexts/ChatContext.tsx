@@ -118,6 +118,10 @@ export const ChatProvider: React.FC<ChatProviderProps> = React.memo(
       setIsEditing(messageId);
     }, []);
 
+    const toggleSender = useCallback(() => {
+      setActiveSender((current) => (current === 'user' ? 'contact' : 'user'));
+    }, []);
+
     const actions = useMemo<ChatActions>(
       () => ({
         addMessage,
@@ -125,6 +129,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = React.memo(
         deleteMessage,
         setActiveSender: setActiveSenderCallback,
         setEditing: setEditingCallback,
+        toggleSender,
       }),
       [
         addMessage,
@@ -132,6 +137,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = React.memo(
         deleteMessage,
         setActiveSenderCallback,
         setEditingCallback,
+        toggleSender,
       ]
     );
 
