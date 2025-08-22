@@ -28,7 +28,7 @@ export const ChatContainer: React.FC<ChatContainerProps> = memo(
     }, [messages]);
 
     return (
-      <div className="flex flex-col h-screen max-h-screen bg-wa-bg-chat">
+      <div className="flex flex-col h-full bg-wa-bg-chat">
         {/* Header */}
         <ChatHeader
           profile={profiles.contact}

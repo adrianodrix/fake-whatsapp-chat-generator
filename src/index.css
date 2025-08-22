@@ -20,3 +20,15 @@ body {
   min-height: 100vh;
   background-color: #f0f2f5;
 }
+
+/* Ensure app takes full height */
+#root {
+  min-height: 100vh;
+}
+
+/* Fix any layout issues */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}

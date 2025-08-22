@@ -71,7 +71,8 @@ export const MessageBubble: React.FC<MessageBubbleProps> = memo(
       .trim()
       .replace(/\s+/g, ' ');
 
-    return (
+    // Wrapper condicional para Profiler (apenas em desenvolvimento)
+    const content = (
       <div className={wrapperClasses}>
         <div className={bubbleClasses}>
           <div className="break-words">
@@ -99,6 +100,21 @@ export const MessageBubble: React.FC<MessageBubbleProps> = memo(
         </div>
       </div>
     );
+
+    // Desabilitado temporariamente para evitar loop infinito
+    // TODO: Reativar após correção completa do usePerformanceMonitor
+    return content;
+
+    /*
+    // Conditional Profiler wrapping (development only)
+    return isDevelopment() && isPerformanceMonitoringEnabled() ? (
+      <Profiler id={`MessageBubble-${message.id}`} onRender={onRenderCallback}>
+        {content}
+      </Profiler>
+    ) : (
+      content
+    );
+    */
   }
 );
 

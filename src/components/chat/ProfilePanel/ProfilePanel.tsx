@@ -70,49 +70,73 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({
       const file = e.target.files?.[0];
       if (!file) return;
 
+      console.log('ProfilePanel: Iniciando upload de arquivo', file.name);
+
       // Validação do arquivo
       const validation = validateUploadFile(file);
       if (!validation.isValid) {
+        console.error('ProfilePanel: Arquivo inválido', validation.error);
         updateProfile({
           errors: { ...formState.errors, upload: validation.error },
         });
         return;
       }
 
-      updateProfile({
+      console.log('ProfilePanel: Arquivo válido, processando...');
+
+      // Define isUploading = true
+      setFormState((prev) => ({
+        ...prev,
         isUploading: true,
-        errors: { ...formState.errors, upload: undefined },
-      });
+        errors: { ...prev.errors, upload: undefined },
+      }));
 
-      try {
-        const result = await resizeImageToAvatar(file);
+      // Usar setTimeout para evitar bloqueio da UI
+      setTimeout(async () => {
+        try {
+          const result = await resizeImageToAvatar(file);
+          console.log('ProfilePanel: Imagem processada com sucesso');
 
-        // Verifica se processamento foi rápido o suficiente
-        if (result.processingTime > 100) {
-          console.warn(
-            `Processamento demorou ${result.processingTime.toFixed(2)}ms`
-          );
+          // Verifica se processamento foi rápido o suficiente
+          if (result.processingTime > 100) {
+            console.warn(
+              `Processamento demorou ${result.processingTime.toFixed(2)}ms`
+            );
+          }
+
+          // Atualiza estado com nova imagem e garante que isUploading seja false
+          setFormState((prev) => ({
+            ...prev,
+            avatar: result.dataUrl,
+            isUploading: false,
+          }));
+
+          console.log('ProfilePanel: isUploading definido como false');
+
+          // Chama callback do parent apenas se houve mudança
+          if (profile.avatar !== result.dataUrl) {
+            onProfileUpdate({
+              ...profile,
+              avatar: result.dataUrl,
+            });
+          }
+
+          // Limpa o input para permitir reenvio do mesmo arquivo
+          if (e.target) {
+            e.target.value = '';
+          }
+        } catch (error) {
+          console.error('Erro ao processar imagem:', error);
+          setFormState((prev) => ({
+            ...prev,
+            isUploading: false,
+            errors: {
+              ...prev.errors,
+              upload: 'Erro ao processar imagem. Tente novamente.',
+            },
+          }));
         }
-
-        updateProfile({
-          avatar: result.dataUrl,
-          isUploading: false,
-        });
-
-        onProfileUpdate({
-          ...profile,
-          avatar: result.dataUrl,
-        });
-      } catch (error) {
-        console.error('Erro ao processar imagem:', error);
-        updateProfile({
-          isUploading: false,
-          errors: {
-            ...formState.errors,
-            upload: 'Erro ao processar imagem. Tente novamente.',
-          },
-        });
-      }
+      }, 10); // Pequeno delay para permitir atualização da UI
     },
     [profile, onProfileUpdate, formState.errors, updateProfile]
   );

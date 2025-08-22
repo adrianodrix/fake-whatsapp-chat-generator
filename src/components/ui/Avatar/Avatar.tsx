@@ -41,7 +41,7 @@ export const Avatar: React.FC<AvatarProps> = memo(
 
     if (src) {
       return (
-        <div className={baseClasses} onClick={onClick}>
+        <div className={`${baseClasses} relative`} onClick={onClick}>
           <img
             src={src}
             alt={name}
@@ -50,9 +50,17 @@ export const Avatar: React.FC<AvatarProps> = memo(
               // Fallback para iniciais se imagem falhar
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
+              // Mostra as iniciais como fallback
+              const fallback = target.nextElementSibling as HTMLElement;
+              if (fallback) {
+                fallback.style.display = 'flex';
+              }
             }}
           />
-          <span className="absolute inset-0 flex items-center justify-center">
+          <span
+            className="absolute inset-0 flex items-center justify-center hidden"
+            style={{ display: 'none' }}
+          >
             {getInitials(name)}
           </span>
         </div>
@@ -60,7 +68,7 @@ export const Avatar: React.FC<AvatarProps> = memo(
     }
 
     return (
-      <div className={baseClasses} onClick={onClick}>
+      <div className={`${baseClasses} relative`} onClick={onClick}>
         {getInitials(name)}
       </div>
     );
