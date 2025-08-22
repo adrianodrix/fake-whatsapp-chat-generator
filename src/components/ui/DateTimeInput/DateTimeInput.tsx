@@ -1,92 +1,205 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect, memo } from 'react';
+import type { DateTimeInputProps } from './DateTimeInput.types';
 
-interface DateTimeInputProps {
-  type: 'date' | 'time';
-  value: string;
-  onChange: (value: string) => void;
-  className?: string;
-  placeholder?: string;
-  pattern?: string;
-  disabled?: boolean;
-  id?: string;
+/**
+ * Cross-browser compatible date and time input components
+ * Addresses TECH-002 risk from QA assessment
+ */
+export const DateTimeInput: React.FC<DateTimeInputProps> = memo(
+  ({
+    type,
+    value,
+    onChange,
+    onError,
+    className = '',
+    disabled = false,
+    placeholder,
+    ...inputProps
+  }) => {
+    const [hasNativeSupport, setHasNativeSupport] = useState(true);
+    const [fallbackValue, setFallbackValue] = useState(value);
+
+    // Check for native HTML5 input support
+    useEffect(() => {
+      const input = document.createElement('input');
+      input.type = type;
+
+      // If browser doesn't support the input type, it falls back to 'text'
+      const supportsType = input.type === type;
+      setHasNativeSupport(supportsType);
+
+      if (!supportsType) {
+        console.warn(`Native ${type} input not supported, using fallback`);
+      }
+    }, [type]);
+
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const newValue = event.target.value;
+
+      // Validate based on type
+      if (!hasNativeSupport) {
+        const validationResult = validateFallbackInput(type, newValue);
+        if (!validationResult.isValid) {
+          onError?.(validationResult.error!);
+          return;
+        }
+      }
+
+      setFallbackValue(newValue);
+      onChange(event);
+    };
+
+    // For browsers with native support, use HTML5 inputs directly
+    if (hasNativeSupport) {
+      return (
+        <input
+          type={type}
+          value={value}
+          onChange={onChange}
+          className={`${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={disabled}
+          placeholder={placeholder}
+          {...inputProps}
+        />
+      );
+    }
+
+    // Fallback for browsers without native support
+    return (
+      <div className="relative">
+        <input
+          type="text"
+          value={fallbackValue}
+          onChange={handleChange}
+          className={`${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={disabled}
+          placeholder={getFallbackPlaceholder(type, placeholder)}
+          {...inputProps}
+        />
+        {type === 'date' && (
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <CalendarIcon className="h-4 w-4 text-gray-400" />
+          </div>
+        )}
+        {type === 'time' && (
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <ClockIcon className="h-4 w-4 text-gray-400" />
+          </div>
+        )}
+      </div>
+    );
+  }
+);
+
+/**
+ * Validate fallback input values
+ */
+function validateFallbackInput(
+  type: string,
+  value: string
+): { isValid: boolean; error?: string } {
+  if (!value.trim()) {
+    return { isValid: true }; // Empty values are valid (optional)
+  }
+
+  switch (type) {
+    case 'date': {
+      // Validate YYYY-MM-DD format
+      const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+      if (!datePattern.test(value)) {
+        return {
+          isValid: false,
+          error: 'Data deve estar no formato YYYY-MM-DD (ex: 2025-08-22)',
+        };
+      }
+
+      // Validate actual date
+      const date = new Date(value);
+      if (isNaN(date.getTime())) {
+        return {
+          isValid: false,
+          error: 'Data inválida',
+        };
+      }
+
+      return { isValid: true };
+    }
+
+    case 'time': {
+      // Validate HH:MM format
+      const timePattern = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+      if (!timePattern.test(value)) {
+        return {
+          isValid: false,
+          error: 'Horário deve estar no formato HH:MM (ex: 14:30)',
+        };
+      }
+
+      return { isValid: true };
+    }
+
+    default:
+      return { isValid: true };
+  }
 }
 
 /**
- * Date/Time input with browser compatibility fallback
+ * Get appropriate placeholder for fallback inputs
  */
-export const DateTimeInput: React.FC<DateTimeInputProps> = ({
-  type,
-  value,
-  onChange,
-  className,
-  placeholder,
-  pattern,
-  disabled,
-  id,
-}) => {
-  const [supportedType, setSupportedType] = useState<'date' | 'time' | 'text'>(
-    type
-  );
+function getFallbackPlaceholder(
+  type: string,
+  customPlaceholder?: string
+): string {
+  if (customPlaceholder) {
+    return customPlaceholder;
+  }
 
-  useEffect(() => {
-    // Test browser support for HTML5 date/time inputs
-    const testInput = document.createElement('input');
-    testInput.type = type;
+  switch (type) {
+    case 'date':
+      return 'YYYY-MM-DD (ex: 2025-08-22)';
+    case 'time':
+      return 'HH:MM (ex: 14:30)';
+    default:
+      return '';
+  }
+}
 
-    // If browser doesn't support the type, it will fallback to 'text'
-    if (testInput.type === 'text') {
-      setSupportedType('text');
-    } else {
-      setSupportedType(type);
-    }
-  }, [type]);
+/**
+ * Simple calendar icon for fallback
+ */
+const CalendarIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+    />
+  </svg>
+);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
-  };
+/**
+ * Simple clock icon for fallback
+ */
+const ClockIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+  </svg>
+);
 
-  // For fallback text inputs, provide appropriate placeholder and pattern
-  const getFallbackProps = () => {
-    if (supportedType === 'text') {
-      if (type === 'date') {
-        return {
-          placeholder: placeholder || 'YYYY-MM-DD',
-          pattern: pattern || '\\d{4}-\\d{2}-\\d{2}',
-          title: 'Formato: YYYY-MM-DD (ex: 2023-12-25)',
-        };
-      } else if (type === 'time') {
-        return {
-          placeholder: placeholder || 'HH:MM',
-          pattern: pattern || '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$',
-          title: 'Formato: HH:MM (ex: 14:30)',
-        };
-      }
-    }
-    return {
-      placeholder,
-      pattern,
-    };
-  };
-
-  const fallbackProps = getFallbackProps();
-
-  return (
-    <>
-      <input
-        id={id}
-        type={supportedType}
-        value={value}
-        onChange={handleChange}
-        className={className}
-        disabled={disabled}
-        {...fallbackProps}
-      />
-      {supportedType === 'text' && (
-        <small className="text-xs text-gray-500 mt-1">
-          {type === 'date' && 'Use formato YYYY-MM-DD (ex: 2023-12-25)'}
-          {type === 'time' && 'Use formato HH:MM (ex: 14:30)'}
-        </small>
-      )}
-    </>
-  );
-};
+DateTimeInput.displayName = 'DateTimeInput';

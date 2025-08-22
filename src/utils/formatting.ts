@@ -90,7 +90,7 @@ export interface MessageGroup {
 }
 
 export const groupMessagesByDate = (messages: Message[]): MessageGroup[] => {
-  return performanceMonitor.measureSync(
+  return performanceMonitor.monitor(
     'groupMessagesByDate',
     () => {
       if (messages.length === 0) return [];

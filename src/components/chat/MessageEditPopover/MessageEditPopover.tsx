@@ -159,11 +159,8 @@ export const MessageEditPopover: React.FC<MessageEditPopoverProps> = memo(
           updatedAt: new Date(),
         };
 
-        // Check if onSave returns a promise
-        const result = onSave(updates);
-        if (result && typeof result.then === 'function') {
-          await result;
-        }
+        // Call onSave and handle potential promise return
+        await onSave(updates);
       } catch (error) {
         console.error('Error saving message:', error);
         setErrors({ text: 'Erro ao salvar mensagem' });
@@ -270,7 +267,9 @@ export const MessageEditPopover: React.FC<MessageEditPopoverProps> = memo(
                   id="message-date"
                   type="date"
                   value={formData.date}
-                  onChange={(value) => handleInputChange('date', value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    handleInputChange('date', e.target.value)
+                  }
                   className={`w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-wa-accent focus:border-transparent ${
                     errors.date ? 'border-red-300 bg-red-50' : 'border-gray-300'
                   }`}
@@ -293,7 +292,9 @@ export const MessageEditPopover: React.FC<MessageEditPopoverProps> = memo(
                   id="message-time"
                   type="time"
                   value={formData.time}
-                  onChange={(value) => handleInputChange('time', value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    handleInputChange('time', e.target.value)
+                  }
                   className={`w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-wa-accent focus:border-transparent ${
                     errors.time ? 'border-red-300 bg-red-50' : 'border-gray-300'
                   }`}

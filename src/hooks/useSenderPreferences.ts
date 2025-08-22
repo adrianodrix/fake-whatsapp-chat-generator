@@ -5,12 +5,12 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import {
-  SenderPreferences,
   DEFAULT_SENDER_PREFERENCES,
   PREFERENCES_STORAGE_KEY,
-  PreferenceValidationResult,
-  PreferencesPreset,
-  PreferenceChangeEvent,
+  type SenderPreferences,
+  type PreferenceValidationResult,
+  type PreferencesPreset,
+  type PreferenceChangeEvent,
   type PreferencesContextType,
 } from '../types/preferences';
 

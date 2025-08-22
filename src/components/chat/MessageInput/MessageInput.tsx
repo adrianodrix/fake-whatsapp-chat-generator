@@ -36,7 +36,7 @@ export const MessageInput: React.FC<MessageInputProps> = memo(
     useEffect(() => {
       if (debouncedValue.trim()) {
         const result = validateMessage(debouncedValue);
-        setValidationError(result.isValid ? null : result.error);
+        setValidationError(result.isValid ? null : result.error || null);
       } else {
         setValidationError(null);
       }

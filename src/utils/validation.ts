@@ -205,7 +205,7 @@ export function validateMessage(text: string): ValidationResult {
     };
   }
 
-  return { isValid: true, error: null };
+  return { isValid: true };
 }
 
 /**
@@ -232,7 +232,7 @@ export function validateUploadFile(file: File): ValidationResult {
  * Valida formato de timestamp HH:MM
  */
 export function validateTime(timeStr: string): ValidationResult {
-  if (!timeStr.trim()) {
+  if (!timeStr || typeof timeStr !== 'string' || !timeStr.trim()) {
     return {
       isValid: false,
       error: 'Horário é obrigatório',
@@ -255,7 +255,7 @@ export function validateTime(timeStr: string): ValidationResult {
  * Valida formato de data YYYY-MM-DD
  */
 export function validateDate(dateStr: string): ValidationResult {
-  if (!dateStr.trim()) {
+  if (!dateStr || typeof dateStr !== 'string' || !dateStr.trim()) {
     return {
       isValid: false,
       error: 'Data é obrigatória',

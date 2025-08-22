@@ -88,17 +88,27 @@ export const ChatProvider: React.FC<ChatProviderProps> = React.memo(
     const updateMessage = useCallback(
       (id: string, updates: Partial<Message>) => {
         setMessages((prev) => {
-          // Store original state for potential rollback
-          const originalMessages = prev;
+          // Store original state for atomic rollback capability
+          const originalMessages = [...prev];
 
           try {
-            // Validate timestamp consistency before applying updates
+            // Find target message for optimistic locking check
+            const targetMessage = prev.find((msg) => msg.id === id);
+            if (!targetMessage) {
+              console.warn(`Message with id ${id} not found for update`);
+              return prev;
+            }
+
+            // Comprehensive temporal validation before applying updates
             if (updates.timestamp) {
               const newTimestamp = updates.timestamp;
               const now = new Date();
 
-              // Temporal validation: prevent inconsistent states
+              // Critical temporal validation: prevent inconsistent states
               if (updates.status === 'read' && newTimestamp > now) {
+                console.error(
+                  'Temporal validation failed: Read status cannot be set for future timestamp'
+                );
                 throw new Error(
                   'Status "read" cannot be set for future timestamp'
                 );
@@ -109,13 +119,29 @@ export const ChatProvider: React.FC<ChatProviderProps> = React.memo(
                 now.getTime() + 24 * 60 * 60 * 1000
               );
               if (newTimestamp > oneDayFromNow) {
+                console.error(
+                  'Temporal validation failed: Timestamp too far in future'
+                );
                 throw new Error(
                   'Timestamp cannot be more than 24 hours in the future'
                 );
               }
+
+              // Validate timestamp is not in the past beyond reasonable limits (1 year)
+              const oneYearAgo = new Date(
+                now.getTime() - 365 * 24 * 60 * 60 * 1000
+              );
+              if (newTimestamp < oneYearAgo) {
+                console.error(
+                  'Temporal validation failed: Timestamp too far in past'
+                );
+                throw new Error(
+                  'Timestamp cannot be more than 1 year in the past'
+                );
+              }
             }
 
-            // Apply updates atomically with optimistic locking
+            // Apply updates atomically with version control
             const updated = prev.map((message) => {
               if (message.id === id) {
                 // Optimistic locking: check version if provided in updates

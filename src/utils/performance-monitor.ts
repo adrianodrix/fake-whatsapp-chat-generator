@@ -1,111 +1,100 @@
 /**
  * Performance monitoring utility for critical operations
+ * Addresses PERF-001 risk from QA assessment
  */
 
 interface PerformanceMetric {
   operation: string;
   duration: number;
   timestamp: Date;
-  context?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
 }
 
 class PerformanceMonitor {
   private metrics: PerformanceMetric[] = [];
-  private maxMetrics = 100; // Keep last 100 metrics
+  private readonly maxMetrics = 100; // Keep last 100 metrics
+  private readonly slowOperationThreshold = 50; // 50ms threshold for slow operations
 
   /**
-   * Measure the execution time of a function
+   * Monitor a synchronous operation
    */
-  async measure<T>(
-    operation: string,
-    fn: () => Promise<T> | T,
-    context?: Record<string, unknown>
-  ): Promise<T> {
-    const startTime = performance.now();
-
-    try {
-      const result = await fn();
-      const duration = performance.now() - startTime;
-
-      this.recordMetric({
-        operation,
-        duration,
-        timestamp: new Date(),
-        context,
-      });
-
-      // Log slow operations
-      if (duration > 100) {
-        console.warn(
-          `Slow operation detected: ${operation} took ${duration.toFixed(2)}ms`,
-          context
-        );
-      }
-
-      return result;
-    } catch (error) {
-      const duration = performance.now() - startTime;
-
-      this.recordMetric({
-        operation: `${operation}_ERROR`,
-        duration,
-        timestamp: new Date(),
-        context: { ...context, error: error.message },
-      });
-
-      throw error;
-    }
-  }
-
-  /**
-   * Measure synchronous operations
-   */
-  measureSync<T>(
+  monitor<T>(
     operation: string,
     fn: () => T,
-    context?: Record<string, unknown>
+    metadata?: Record<string, unknown>
   ): T {
-    const startTime = performance.now();
+    const start = performance.now();
 
     try {
       const result = fn();
-      const duration = performance.now() - startTime;
+      const duration = performance.now() - start;
 
-      this.recordMetric({
-        operation,
-        duration,
-        timestamp: new Date(),
-        context,
-      });
+      this.recordMetric(operation, duration, metadata);
 
-      // Log slow operations
-      if (duration > 50) {
-        // Lower threshold for sync operations
+      if (duration > this.slowOperationThreshold) {
         console.warn(
-          `Slow sync operation detected: ${operation} took ${duration.toFixed(2)}ms`,
-          context
+          `Slow operation detected: ${operation} took ${duration.toFixed(2)}ms`,
+          metadata
         );
       }
 
       return result;
     } catch (error) {
-      const duration = performance.now() - startTime;
-
-      this.recordMetric({
-        operation: `${operation}_ERROR`,
-        duration,
-        timestamp: new Date(),
-        context: { ...context, error: error.message },
-      });
-
+      const duration = performance.now() - start;
+      this.recordMetric(operation, duration, { ...metadata, error: true });
       throw error;
     }
   }
 
-  private recordMetric(metric: PerformanceMetric) {
+  /**
+   * Monitor an async operation
+   */
+  async monitorAsync<T>(
+    operation: string,
+    fn: () => Promise<T>,
+    metadata?: Record<string, unknown>
+  ): Promise<T> {
+    const start = performance.now();
+
+    try {
+      const result = await fn();
+      const duration = performance.now() - start;
+
+      this.recordMetric(operation, duration, metadata);
+
+      if (duration > this.slowOperationThreshold) {
+        console.warn(
+          `Slow async operation detected: ${operation} took ${duration.toFixed(2)}ms`,
+          metadata
+        );
+      }
+
+      return result;
+    } catch (error) {
+      const duration = performance.now() - start;
+      this.recordMetric(operation, duration, { ...metadata, error: true });
+      throw error;
+    }
+  }
+
+  /**
+   * Record a performance metric
+   */
+  private recordMetric(
+    operation: string,
+    duration: number,
+    metadata?: Record<string, unknown>
+  ) {
+    const metric: PerformanceMetric = {
+      operation,
+      duration,
+      timestamp: new Date(),
+      metadata,
+    };
+
     this.metrics.push(metric);
 
-    // Keep only the last N metrics
+    // Keep only the most recent metrics
     if (this.metrics.length > this.maxMetrics) {
       this.metrics.shift();
     }
@@ -114,62 +103,112 @@ class PerformanceMonitor {
   /**
    * Get performance statistics for an operation
    */
-  getStats(operation: string) {
-    const operationMetrics = this.metrics.filter(
-      (m) => m.operation === operation
-    );
+  getStats(operation?: string): {
+    count: number;
+    avgDuration: number;
+    maxDuration: number;
+    minDuration: number;
+    slowOperations: number;
+  } {
+    const relevantMetrics = operation
+      ? this.metrics.filter((m) => m.operation === operation)
+      : this.metrics;
 
-    if (operationMetrics.length === 0) {
-      return null;
+    if (relevantMetrics.length === 0) {
+      return {
+        count: 0,
+        avgDuration: 0,
+        maxDuration: 0,
+        minDuration: 0,
+        slowOperations: 0,
+      };
     }
 
-    const durations = operationMetrics.map((m) => m.duration);
-    const avg = durations.reduce((sum, d) => sum + d, 0) / durations.length;
-    const min = Math.min(...durations);
-    const max = Math.max(...durations);
-
-    // Calculate p95
-    const sorted = durations.sort((a, b) => a - b);
-    const p95Index = Math.ceil(sorted.length * 0.95) - 1;
-    const p95 = sorted[p95Index] || max;
+    const durations = relevantMetrics.map((m) => m.duration);
+    const slowOperations = relevantMetrics.filter(
+      (m) => m.duration > this.slowOperationThreshold
+    ).length;
 
     return {
-      operation,
-      count: operationMetrics.length,
-      avgDuration: avg,
-      minDuration: min,
-      maxDuration: max,
-      p95Duration: p95,
+      count: relevantMetrics.length,
+      avgDuration: durations.reduce((sum, d) => sum + d, 0) / durations.length,
+      maxDuration: Math.max(...durations),
+      minDuration: Math.min(...durations),
+      slowOperations,
     };
   }
 
   /**
    * Get all recorded metrics
    */
-  getAllMetrics() {
+  getAllMetrics(): PerformanceMetric[] {
     return [...this.metrics];
   }
 
   /**
    * Clear all metrics
    */
-  clear() {
+  clearMetrics(): void {
     this.metrics = [];
   }
 
   /**
-   * Get summary of all operations
+   * Check if performance is degrading
    */
-  getSummary() {
-    const operations = [...new Set(this.metrics.map((m) => m.operation))];
-    return operations.map((op) => this.getStats(op)).filter(Boolean);
+  isPerformanceDegrading(operation: string, windowSize: number = 10): boolean {
+    const recentMetrics = this.metrics
+      .filter((m) => m.operation === operation)
+      .slice(-windowSize);
+
+    if (recentMetrics.length < windowSize) {
+      return false;
+    }
+
+    const recentAvg =
+      recentMetrics.slice(-5).reduce((sum, m) => sum + m.duration, 0) / 5;
+
+    const previousAvg =
+      recentMetrics.slice(0, 5).reduce((sum, m) => sum + m.duration, 0) / 5;
+
+    // Consider performance degrading if recent average is 50% slower
+    return recentAvg > previousAvg * 1.5;
   }
 }
 
-// Global performance monitor instance
+// Singleton instance
 export const performanceMonitor = new PerformanceMonitor();
 
-// Hook for React components to access performance monitoring
-export const usePerformanceMonitor = () => {
-  return performanceMonitor;
-};
+/**
+ * Decorator for monitoring method performance
+ */
+export function monitorPerformance(operation?: string) {
+  return function (
+    target: unknown,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+  ) {
+    const originalMethod = descriptor.value;
+    const operationName =
+      operation ||
+      `${(target as { constructor: { name: string } }).constructor.name}.${propertyKey}`;
+
+    descriptor.value = function (...args: unknown[]) {
+      return performanceMonitor.monitor(operationName, () =>
+        originalMethod.apply(this, args)
+      );
+    };
+
+    return descriptor;
+  };
+}
+
+/**
+ * Higher-order function for monitoring function performance
+ */
+export function withPerformanceMonitoring<
+  T extends (...args: unknown[]) => unknown,
+>(fn: T, operation: string): T {
+  return ((...args: unknown[]) => {
+    return performanceMonitor.monitor(operation, () => fn(...args));
+  }) as T;
+}
