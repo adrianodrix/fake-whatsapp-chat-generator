@@ -1,12 +1,13 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
+import { render } from '../test-utils/providers';
 import { ChatContainer } from '@/components/chat/ChatContainer';
 import { ChatExporter } from '@/utils/export';
 
 describe('Export Integration Tests', () => {
   const mockProfiles = {
-    user: { id: '1', name: 'User', avatar: '', phone: '+123456789' },
-    contact: { id: '2', name: 'Contact', avatar: '', phone: '+987654321' },
+    user: { id: 'user', name: 'User', initials: 'U', isOnline: true },
+    contact: { id: 'contact', name: 'Contact', initials: 'C', isOnline: true },
   };
 
   describe('Fluxo Completo de Export', () => {
