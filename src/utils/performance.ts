@@ -1,9 +1,11 @@
 /**
  * Utilitários para monitoramento de performance
  * Implementa validação de 60fps e métricas de rendering
+ * Integrado com Sentry para monitoring em produção
  */
 
 import { useState, useRef, useEffect } from 'react';
+import { captureMessage } from '@/monitoring/sentry';
 
 // Interfaces principais definidas na história
 export interface PerformanceMetric {
@@ -256,14 +258,14 @@ export const setupPerformanceObserver = (): void => {
       const entries = list.getEntries();
       let cumulativeLayoutShift = 0;
 
-      entries.forEach(
-        (
-          entry: PerformanceEntry & { value?: number; hadRecentInput?: boolean }
-        ) => {
-          if (entry.hadRecentInput) return;
-          cumulativeLayoutShift += entry.value || 0;
-        }
-      );
+      entries.forEach((entry) => {
+        const layoutEntry = entry as PerformanceEntry & {
+          value?: number;
+          hadRecentInput?: boolean;
+        };
+        if (layoutEntry.hadRecentInput) return;
+        cumulativeLayoutShift += layoutEntry.value || 0;
+      });
 
       if (cumulativeLayoutShift > 0.1) {
         console.warn(
@@ -457,4 +459,259 @@ export const checkPerformanceBudgets = (
   });
 
   return results;
+};
+
+// === NOVAS FUNCIONALIDADES INTEGRADAS COM SENTRY ===
+
+/**
+ * Detectar se prefers-reduced-motion está ativado
+ */
+export const prefersReducedMotion = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+};
+
+/**
+ * Observer para mudanças em prefers-reduced-motion
+ */
+export const observeReducedMotionPreference = (
+  callback: (prefersReduced: boolean) => void
+) => {
+  if (typeof window === 'undefined') return () => {};
+
+  const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const handler = (e: MediaQueryListEvent) => callback(e.matches);
+
+  mediaQuery.addEventListener('change', handler);
+
+  // Retornar cleanup function
+  return () => mediaQuery.removeEventListener('change', handler);
+};
+
+/**
+ * Performance timing measurements com Sentry integration
+ */
+export const measurePerformanceWithSentry = <T>(
+  name: string,
+  fn: () => T | Promise<T>
+): T | Promise<T> => {
+  const isDev = process.env.NODE_ENV === 'development';
+  if (isDev) {
+    performance.mark(`${name}-start`);
+  }
+
+  const result = fn();
+
+  if (result instanceof Promise) {
+    return result.then((value) => {
+      if (isDev) {
+        performance.mark(`${name}-end`);
+        performance.measure(name, `${name}-start`, `${name}-end`);
+
+        if (performance.getEntriesByName) {
+          const measure = performance.getEntriesByName(name, 'measure')[0];
+          if (measure) {
+            console.log(
+              `[Performance] ${name}: ${measure.duration.toFixed(2)}ms`
+            );
+          }
+        }
+
+        // Log para Sentry se demorou muito
+        if (performance.getEntriesByName) {
+          const measure = performance.getEntriesByName(name, 'measure')[0];
+          if (measure && measure.duration > 1000) {
+            captureMessage(
+              `Slow operation: ${name} took ${measure.duration.toFixed(2)}ms`,
+              'warning'
+            );
+          }
+        }
+      }
+      return value;
+    });
+  } else {
+    if (isDev) {
+      performance.mark(`${name}-end`);
+      performance.measure(name, `${name}-start`, `${name}-end`);
+
+      if (performance.getEntriesByName) {
+        const measure = performance.getEntriesByName(name, 'measure')[0];
+        if (measure) {
+          console.log(
+            `[Performance] ${name}: ${measure.duration.toFixed(2)}ms`
+          );
+
+          // Log para Sentry se demorou muito
+          if (measure.duration > 100) {
+            captureMessage(
+              `Slow operation: ${name} took ${measure.duration.toFixed(2)}ms`,
+              'warning'
+            );
+          }
+        }
+      }
+    }
+    return result;
+  }
+};
+
+/**
+ * Debounce para otimizar eventos frequentes
+ */
+export const debounce = <T extends (...args: unknown[]) => unknown>(
+  func: T,
+  wait: number
+): ((...args: Parameters<T>) => void) => {
+  let timeout: NodeJS.Timeout;
+
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+};
+
+/**
+ * Throttle para limitar frequência de execução
+ */
+export const throttle = <T extends (...args: unknown[]) => unknown>(
+  func: T,
+  limit: number
+): ((...args: Parameters<T>) => void) => {
+  let inThrottle: boolean;
+
+  return (...args: Parameters<T>) => {
+    if (!inThrottle) {
+      func(...args);
+      inThrottle = true;
+      setTimeout(() => (inThrottle = false), limit);
+    }
+  };
+};
+
+/**
+ * Lazy loading de images com Intersection Observer
+ */
+export const lazyLoadImage = (img: HTMLImageElement, src: string): void => {
+  if ('IntersectionObserver' in window) {
+    const imageObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const image = entry.target as HTMLImageElement;
+          image.src = src;
+          image.classList.remove('lazy');
+          observer.unobserve(image);
+        }
+      });
+    });
+
+    imageObserver.observe(img);
+  } else {
+    // Fallback para browsers sem Intersection Observer
+    img.src = src;
+  }
+};
+
+/**
+ * Memory cleanup utilities
+ */
+export const cleanupResources = () => {
+  // Limpar performance entries antigas
+  if (performance.clearMarks) {
+    performance.clearMarks();
+  }
+  if (performance.clearMeasures) {
+    performance.clearMeasures();
+  }
+
+  console.log('[Performance] Resources cleaned up');
+};
+
+/**
+ * Monitor Core Web Vitals com Sentry integration
+ */
+export const observeWebVitals = () => {
+  // Só executar em produção
+  if (process.env.NODE_ENV !== 'production') return;
+
+  // First Contentful Paint (FCP)
+  new PerformanceObserver((list) => {
+    for (const entry of list.getEntries()) {
+      if (entry.name === 'first-contentful-paint') {
+        const fcp = entry.startTime;
+        console.log(`[WebVitals] FCP: ${fcp.toFixed(2)}ms`);
+
+        if (fcp > 1500) {
+          captureMessage(`Poor FCP: ${fcp.toFixed(2)}ms`, 'warning');
+        }
+      }
+    }
+  }).observe({ entryTypes: ['paint'] });
+
+  // Largest Contentful Paint (LCP)
+  new PerformanceObserver((list) => {
+    const entries = list.getEntries();
+    const lastEntry = entries[entries.length - 1];
+    const lcp = lastEntry.startTime;
+
+    console.log(`[WebVitals] LCP: ${lcp.toFixed(2)}ms`);
+
+    if (lcp > 2500) {
+      captureMessage(`Poor LCP: ${lcp.toFixed(2)}ms`, 'warning');
+    }
+  }).observe({ entryTypes: ['largest-contentful-paint'] });
+
+  // Cumulative Layout Shift (CLS)
+  let clsValue = 0;
+  new PerformanceObserver((list) => {
+    for (const entry of list.getEntries()) {
+      const layoutEntry = entry as PerformanceEntry & {
+        value?: number;
+        hadRecentInput?: boolean;
+      };
+      if (!layoutEntry.hadRecentInput) {
+        clsValue += layoutEntry.value || 0;
+      }
+    }
+
+    if (clsValue > 0.1) {
+      console.warn(`[WebVitals] High CLS: ${clsValue.toFixed(3)}`);
+      captureMessage(`High CLS: ${clsValue.toFixed(3)}`, 'warning');
+    }
+  }).observe({ entryTypes: ['layout-shift'] });
+};
+
+/**
+ * Bundle size monitoring
+ */
+export const logBundleInfo = () => {
+  if (process.env.NODE_ENV === 'development') {
+    console.log(
+      '[Bundle] App version:',
+      process.env.VITE_APP_VERSION || '1.0.0'
+    );
+    console.log('[Bundle] Build mode:', process.env.NODE_ENV);
+  }
+};
+
+/**
+ * Request Animation Frame com fallback
+ */
+export const requestAnimationFrame = (
+  callback: FrameRequestCallback
+): number => {
+  if (window.requestAnimationFrame) {
+    return window.requestAnimationFrame(callback);
+  } else {
+    // Fallback para browsers antigos
+    return window.setTimeout(callback, 16) as unknown as number;
+  }
+};
+
+export const cancelAnimationFrame = (id: number): void => {
+  if (window.cancelAnimationFrame) {
+    window.cancelAnimationFrame(id);
+  } else {
+    window.clearTimeout(id);
+  }
 };

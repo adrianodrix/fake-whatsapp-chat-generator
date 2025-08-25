@@ -2,6 +2,14 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App.tsx';
+import { initializeSentry } from '@/monitoring/sentry';
+
+// Inicializar Sentry antes de renderizar a aplicação
+initializeSentry();
+
+// Inicializar monitoramento de performance
+import { observeWebVitals } from '@/utils/performance';
+observeWebVitals();
 
 // Registrar Service Worker para PWA
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
