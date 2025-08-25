@@ -55,17 +55,15 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          // Core React libs
+          // Core React libs - pequeno
           vendor: ['react', 'react-dom'],
-          // Heavy components para lazy loading
+          // Heavy components para lazy loading - pequeno
           'lazy-components': [
             'src/components/modals/ExportModal/ExportModal.tsx',
             'src/components/chat/ProfilePanel/ProfilePanel.tsx',
           ],
-          // Utilities separados
-          utils: ['html2canvas', '@floating-ui/react'],
-          // Monitoring separado
-          monitoring: ['@sentry/react'],
+          // Utilities menores
+          'floating-ui': ['@floating-ui/react'],
         },
       },
     },
