@@ -13,3 +13,11 @@ export type {
 } from './message';
 
 export type { Profile, ChatProfiles, ProfileFormData } from './profile';
+
+export type {
+  ExportModalProps,
+  ExportPreset,
+  ExportModalState,
+} from './export.types';
+
+export { EXPORT_PRESETS } from './export.types';

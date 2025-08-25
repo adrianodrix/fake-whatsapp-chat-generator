@@ -81,6 +81,7 @@ export const MessageInput: React.FC<MessageInputProps> = memo(
           {/* Sender toggle button */}
           <button
             onClick={onSenderToggle}
+            data-sender-toggle="true"
             className={`
             flex-shrink-0 p-2 rounded-full transition-colors
             ${senderColor} hover:bg-gray-100
@@ -194,7 +195,10 @@ export const MessageInput: React.FC<MessageInputProps> = memo(
 
         {/* Sender indicator e validation error */}
         <div className="mt-2 flex justify-between items-center px-2">
-          <span className={`text-xs ${senderColor} font-medium`}>
+          <span
+            data-sender-indicator="true"
+            className={`text-xs ${senderColor} font-medium`}
+          >
             Enviando como: {activeSender === 'user' ? 'Você' : 'Contato'} (Tab
             para alternar)
           </span>

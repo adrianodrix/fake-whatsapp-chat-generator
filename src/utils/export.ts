@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import html2canvas from 'html2canvas';
 import { measureCanvasOperation } from './performance';
 
 export interface ExportOptions {
@@ -13,6 +14,7 @@ export interface ExportOptions {
   height?: number;
   pixelRatio?: number;
   backgroundColor?: string;
+  onProgress?: (progress: number) => void;
 }
 
 export interface ExportResult {
@@ -48,7 +50,7 @@ export class ChatExporter {
   }
 
   /**
-   * Execução do export (sem monitoring para usar como fallback)
+   * Execução do export usando html2canvas
    */
   private async performExport(
     element: HTMLElement,
@@ -57,22 +59,97 @@ export class ChatExporter {
     const startTime = performance.now();
 
     try {
-      // Criar canvas com dimensões baseadas no elemento
-      const canvas = this.createCanvas(element, options);
-      const ctx = canvas.getContext('2d');
+      // Progress: 10% - Iniciando
+      options.onProgress?.(10);
 
-      if (!ctx) {
-        throw new Error('Não foi possível criar contexto 2D do canvas');
+      // Configurar opções do html2canvas
+      const scale = options.pixelRatio || window.devicePixelRatio || 2;
+
+      // Progress: 30% - Preparando captura
+      options.onProgress?.(30);
+
+      // Obter dimensões exatas do elemento sem espaços laterais
+      const rect = element.getBoundingClientRect();
+
+      // Para mobile, usar largura fixa de 375px (iPhone padrão)
+      // Para desktop, usar largura real mas limitada
+      const isMobileWidth = window.innerWidth <= 768;
+      const targetWidth = isMobileWidth ? 375 : Math.min(rect.width, 428);
+      const actualHeight = element.scrollHeight;
+
+      // Usar html2canvas para capturar o elemento
+      const canvas = await html2canvas(element, {
+        scale: scale,
+        width: targetWidth,
+        height: actualHeight,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#E5DDD5', // Background do WhatsApp
+        logging: false,
+        windowWidth: targetWidth,
+        windowHeight: actualHeight,
+        onclone: (clonedDoc, clonedElement) => {
+          // Garantir que o clone mantenha as dimensões exatas
+          if (clonedElement) {
+            clonedElement.style.margin = '0';
+            clonedElement.style.padding = '0';
+            clonedElement.style.width = `${targetWidth}px`;
+            clonedElement.style.maxWidth = `${targetWidth}px`;
+
+            // Remover scrollbars se houver
+            const messagesArea =
+              clonedElement.querySelector('.overflow-y-auto');
+            if (messagesArea instanceof HTMLElement) {
+              messagesArea.style.overflow = 'hidden';
+            }
+
+            // Ocultar botão de toggle sender (botão verde no MessageInput)
+            const toggleButton = clonedElement.querySelector(
+              '[data-sender-toggle]'
+            );
+            if (toggleButton instanceof HTMLElement) {
+              toggleButton.style.display = 'none';
+            }
+
+            // Ocultar texto indicador de sender (texto verde no MessageInput)
+            const senderIndicator = clonedElement.querySelector(
+              '[data-sender-indicator]'
+            );
+            if (senderIndicator instanceof HTMLElement) {
+              senderIndicator.style.display = 'none';
+            }
+
+            // Garantir que o nome no header não seja cortado
+            const headerName = clonedElement.querySelector('.truncate');
+            if (headerName instanceof HTMLElement) {
+              headerName.style.overflow = 'visible';
+              headerName.style.textOverflow = 'initial';
+              headerName.style.whiteSpace = 'nowrap';
+            }
+          }
+        },
+      });
+
+      // Progress: 70% - Canvas gerado
+      options.onProgress?.(70);
+
+      // Ajustar tamanho se necessário
+      let finalCanvas = canvas;
+      if (options.width && options.width !== canvas.width) {
+        finalCanvas = this.resizeCanvas(canvas, options.width);
       }
 
-      // Configurar canvas
-      this.setupCanvas(ctx, canvas, options);
-
-      // Renderizar elemento no canvas
-      await this.renderElementToCanvas(ctx, element, canvas);
+      // Progress: 80% - Processamento completo
+      options.onProgress?.(80);
 
       // Gerar blob e data URL
-      const { blob, dataUrl } = await this.generateImageData(canvas, options);
+      const { blob, dataUrl } = await this.generateImageData(
+        finalCanvas,
+        options
+      );
+
+      // Progress: 100% - Completo
+      options.onProgress?.(100);
 
       const duration = performance.now() - startTime;
 
@@ -80,167 +157,42 @@ export class ChatExporter {
         blob,
         dataUrl,
         duration,
-        dimensions: { width: canvas.width, height: canvas.height },
+        dimensions: { width: finalCanvas.width, height: finalCanvas.height },
       };
     } catch (error) {
-      // Log error mas não quebrar a aplicação
       console.error('Export failed:', error);
       throw error;
     }
   }
 
   /**
-   * Cria canvas com dimensões adequadas
+   * Redimensiona canvas mantendo proporção e qualidade
    */
-  private createCanvas(
-    element: HTMLElement,
-    options: ExportOptions
+  private resizeCanvas(
+    originalCanvas: HTMLCanvasElement,
+    targetWidth: number
   ): HTMLCanvasElement {
-    const canvas = document.createElement('canvas');
-    const rect = element.getBoundingClientRect();
-    const pixelRatio = options.pixelRatio || window.devicePixelRatio || 1;
+    const aspectRatio = originalCanvas.height / originalCanvas.width;
+    const targetHeight = Math.round(targetWidth * aspectRatio);
 
-    // Dimensões baseadas no elemento ou opções
-    const width = options.width || rect.width;
-    const height = options.height || rect.height;
+    const newCanvas = document.createElement('canvas');
+    newCanvas.width = targetWidth * 2; // 2x para retina
+    newCanvas.height = targetHeight * 2;
 
-    canvas.width = width * pixelRatio;
-    canvas.height = height * pixelRatio;
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
+    // Definir o tamanho CSS para display correto
+    newCanvas.style.width = targetWidth + 'px';
+    newCanvas.style.height = targetHeight + 'px';
 
-    return canvas;
-  }
+    const ctx = newCanvas.getContext('2d');
+    if (ctx) {
+      ctx.scale(2, 2); // Aplicar scale 2x
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      // Desenhar com scale aplicado
+      ctx.drawImage(originalCanvas, 0, 0, targetWidth, targetHeight);
+    }
 
-  /**
-   * Configura canvas com background e scaling
-   */
-  private setupCanvas(
-    ctx: CanvasRenderingContext2D,
-    canvas: HTMLCanvasElement,
-    options: ExportOptions
-  ): void {
-    const pixelRatio = options.pixelRatio || window.devicePixelRatio || 1;
-
-    // Configurar scaling para alta resolução
-    ctx.scale(pixelRatio, pixelRatio);
-
-    // Configurar qualidade
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-
-    // Background color
-    const bgColor = options.backgroundColor || '#E5DDD5'; // WhatsApp chat background
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, canvas.width / pixelRatio, canvas.height / pixelRatio);
-  }
-
-  /**
-   * Renderiza elemento DOM no canvas usando html2canvas-like approach
-   */
-  private async renderElementToCanvas(
-    ctx: CanvasRenderingContext2D,
-    element: HTMLElement,
-    canvas: HTMLCanvasElement
-  ): Promise<void> {
-    // Para MVP, usar uma abordagem simplificada
-    // Em produção, isso seria substituído por html2canvas ou similar
-
-    return new Promise((resolve) => {
-      // Capturar estilos computados
-      // const computedStyle = window.getComputedStyle(element);
-
-      // Para esta implementação MVP, vamos usar foreign object (quando suportado)
-      if (this.supportsForeignObject()) {
-        this.renderViaSVGForeignObject(ctx, element, canvas, resolve);
-      } else {
-        // Fallback: renderização manual básica
-        this.renderManually(ctx, element, resolve);
-      }
-    });
-  }
-
-  /**
-   * Verifica suporte para SVG foreignObject
-   */
-  private supportsForeignObject(): boolean {
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    const foreignObject = document.createElementNS(
-      'http://www.w3.org/2000/svg',
-      'foreignObject'
-    );
-    svg.appendChild(foreignObject);
-
-    return typeof foreignObject.appendChild === 'function';
-  }
-
-  /**
-   * Renderiza usando SVG foreignObject (método mais preciso)
-   */
-  private renderViaSVGForeignObject(
-    ctx: CanvasRenderingContext2D,
-    element: HTMLElement,
-    canvas: HTMLCanvasElement,
-    onComplete: () => void
-  ): void {
-    const rect = element.getBoundingClientRect();
-    // const pixelRatio = window.devicePixelRatio || 1;
-
-    // Criar SVG com foreignObject
-    const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="${rect.width}" height="${rect.height}">
-        <foreignObject width="100%" height="100%">
-          <div xmlns="http://www.w3.org/1999/xhtml" style="width: ${rect.width}px; height: ${rect.height}px;">
-            ${element.outerHTML}
-          </div>
-        </foreignObject>
-      </svg>
-    `;
-
-    const img = new Image();
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0);
-      onComplete();
-    };
-
-    img.onerror = () => {
-      console.warn('SVG foreignObject failed, using manual rendering');
-      this.renderManually(ctx, element, onComplete);
-    };
-
-    const blob = new Blob([svg], { type: 'image/svg+xml' });
-    img.src = URL.createObjectURL(blob);
-  }
-
-  /**
-   * Renderização manual básica (fallback)
-   */
-  private renderManually(
-    ctx: CanvasRenderingContext2D,
-    element: HTMLElement,
-    onComplete: () => void
-  ): void {
-    // Implementação básica - apenas renderizar texto das mensagens
-    const messages = element.querySelectorAll('[data-message-text]');
-    let y = 20;
-
-    ctx.font = '14px Arial, sans-serif';
-    ctx.fillStyle = '#000000';
-
-    messages.forEach((msg) => {
-      const text = msg.textContent || '';
-      const isUser = msg.closest('[data-sender="user"]') !== null;
-
-      ctx.fillStyle = isUser ? '#DCF8C6' : '#FFFFFF';
-      ctx.fillRect(isUser ? 200 : 20, y, 200, 40);
-
-      ctx.fillStyle = '#000000';
-      ctx.fillText(text, isUser ? 210 : 30, y + 25);
-
-      y += 50;
-    });
-
-    onComplete();
+    return newCanvas;
   }
 
   /**
@@ -250,15 +202,18 @@ export class ChatExporter {
     canvas: HTMLCanvasElement,
     options: ExportOptions
   ): Promise<{ blob: Blob; dataUrl: string }> {
+    // Criar um novo canvas para remover qualquer espaço em branco extra
+    const trimmedCanvas = this.trimCanvas(canvas);
+
     return new Promise((resolve, reject) => {
-      canvas.toBlob(
+      trimmedCanvas.toBlob(
         (blob) => {
           if (!blob) {
             reject(new Error('Falha ao gerar blob'));
             return;
           }
 
-          const dataUrl = canvas.toDataURL(
+          const dataUrl = trimmedCanvas.toDataURL(
             `image/${options.format}`,
             options.format === 'jpeg' ? options.quality || 0.9 : undefined
           );
@@ -269,6 +224,68 @@ export class ChatExporter {
         options.format === 'jpeg' ? options.quality || 0.9 : undefined
       );
     });
+  }
+
+  /**
+   * Remove espaços em branco extras do canvas
+   */
+  private trimCanvas(canvas: HTMLCanvasElement): HTMLCanvasElement {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return canvas;
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const pixels = imageData.data;
+
+    let minX = canvas.width;
+    let minY = canvas.height;
+    let maxX = 0;
+    let maxY = 0;
+
+    // Encontrar os limites do conteúdo não-transparente
+    for (let y = 0; y < canvas.height; y++) {
+      for (let x = 0; x < canvas.width; x++) {
+        const index = (y * canvas.width + x) * 4;
+        const alpha = pixels[index + 3];
+
+        // Se o pixel tem algum conteúdo (não é totalmente transparente)
+        if (alpha > 0) {
+          minX = Math.min(minX, x);
+          minY = Math.min(minY, y);
+          maxX = Math.max(maxX, x);
+          maxY = Math.max(maxY, y);
+        }
+      }
+    }
+
+    // Se não encontrou conteúdo, retorna o canvas original
+    if (minX > maxX || minY > maxY) {
+      return canvas;
+    }
+
+    // Criar novo canvas com o tamanho trimado
+    const trimmedWidth = maxX - minX + 1;
+    const trimmedHeight = maxY - minY + 1;
+
+    const trimmedCanvas = document.createElement('canvas');
+    trimmedCanvas.width = trimmedWidth;
+    trimmedCanvas.height = trimmedHeight;
+
+    const trimmedCtx = trimmedCanvas.getContext('2d');
+    if (trimmedCtx) {
+      trimmedCtx.drawImage(
+        canvas,
+        minX,
+        minY,
+        trimmedWidth,
+        trimmedHeight,
+        0,
+        0,
+        trimmedWidth,
+        trimmedHeight
+      );
+    }
+
+    return trimmedCanvas;
   }
 
   /**
