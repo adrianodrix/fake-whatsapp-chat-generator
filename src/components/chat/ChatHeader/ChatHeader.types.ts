@@ -10,6 +10,8 @@ export interface ChatHeaderProps {
   onProfileEdit?: () => void;
   /** Handler para voltar */
   onBack?: () => void;
+  /** Handler para exportar conversa */
+  onExport?: () => void;
   /** Se deve mostrar status online */
   showOnlineStatus?: boolean;
 }

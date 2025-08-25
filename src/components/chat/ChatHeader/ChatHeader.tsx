@@ -1,13 +1,14 @@
 import React, { memo } from 'react';
 import type { ChatHeaderProps } from './ChatHeader.types';
 import { Avatar } from '../../ui/Avatar';
+import { ExportButton } from '../ExportButton';
 
 /**
  * Header do chat com avatar, nome e ações
  * Replica o header do WhatsApp com precisão pixel-perfect
  */
 export const ChatHeader: React.FC<ChatHeaderProps> = memo(
-  ({ profile, onProfileEdit, onBack, showOnlineStatus = false }) => {
+  ({ profile, onProfileEdit, onBack, onExport, showOnlineStatus = false }) => {
     return (
       <header className="bg-wa-primary text-white h-15 px-4 flex items-center shadow-md">
         {/* Back button (mobile) */}
@@ -55,7 +56,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = memo(
           )}
         </div>
 
-        {/* Menu/Options (placeholder) */}
+        {/* Menu/Options */}
         <div className="flex items-center gap-2">
           <button
             className="p-2 rounded-full hover:bg-white/10 transition-colors"
@@ -69,6 +70,9 @@ export const ChatHeader: React.FC<ChatHeaderProps> = memo(
               />
             </svg>
           </button>
+
+          {/* Export Button */}
+          {onExport && <ExportButton onClick={onExport} />}
 
           <button
             className="p-2 rounded-full hover:bg-white/10 transition-colors"
