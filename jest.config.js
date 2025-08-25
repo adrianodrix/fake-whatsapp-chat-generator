@@ -4,6 +4,7 @@ export default {
   setupFilesAfterEnv: ['<rootDir>/src/setupTests.ts'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^html2canvas$': '<rootDir>/tests/__mocks__/html2canvas.ts',
   },
   transform: {
     '^.+\\.(ts|tsx)$': [
