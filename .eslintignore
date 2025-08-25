@@ -4,4 +4,4 @@ build/
 coverage/
 *.config.js
 *.config.ts
-public/
+public/coverage
