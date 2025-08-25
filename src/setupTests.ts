@@ -39,10 +39,14 @@ Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
 const originalCreateElement = document.createElement;
 document.createElement = jest.fn().mockImplementation((tagName) => {
   if (tagName === 'canvas') {
-    const canvas = originalCreateElement.call(document, 'canvas');
+    const canvas = originalCreateElement.call(
+      document,
+      'canvas'
+    ) as HTMLCanvasElement;
     canvas.width = 800;
     canvas.height = 600;
     canvas.getContext = jest.fn(() => ({
+      // Minimal mock for 2d context
       drawImage: jest.fn(),
       scale: jest.fn(),
       getImageData: jest.fn(() => ({
@@ -52,7 +56,7 @@ document.createElement = jest.fn().mockImplementation((tagName) => {
       })),
       imageSmoothingEnabled: true,
       imageSmoothingQuality: 'high',
-    }));
+    })) as unknown as CanvasRenderingContext2D;
     canvas.toDataURL = jest.fn(() => 'data:image/png;base64,test');
     canvas.toBlob = jest.fn((callback) => {
       const blob = new Blob(['test'], { type: 'image/png' });
@@ -77,7 +81,15 @@ if (!window.performance) {
 window.performance.now = jest.fn(() => Date.now());
 window.performance.mark = jest.fn();
 window.performance.measure = jest.fn();
-window.performance.getEntriesByName = jest.fn(() => [{ duration: 100 }]);
+window.performance.getEntriesByName = jest.fn(() => [
+  {
+    duration: 100,
+    entryType: 'measure',
+    name: 'test-measure',
+    startTime: 0,
+    toJSON: () => ({}),
+  } as PerformanceEntry,
+]);
 
 // Custom matchers for WhatsApp Chat Generator are extended by testing-library/jest-dom
 // Additional custom matchers are defined in test-utils/matchers.ts

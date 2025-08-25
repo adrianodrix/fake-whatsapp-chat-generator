@@ -63,7 +63,7 @@ export class ChatExporter {
       options.onProgress?.(10);
 
       // Configurar opções do html2canvas
-      const scale = options.pixelRatio || window.devicePixelRatio || 2;
+      // const scale = options.pixelRatio || window.devicePixelRatio || 2; // Not used anymore
 
       // Progress: 30% - Preparando captura
       options.onProgress?.(30);
@@ -79,55 +79,55 @@ export class ChatExporter {
 
       // Usar html2canvas para capturar o elemento
       const canvas = await html2canvas(element, {
-        scale: scale,
+        // scale: scale, // Deprecated - using transform instead
         width: targetWidth,
         height: actualHeight,
         useCORS: true,
         allowTaint: true,
-        backgroundColor: '#E5DDD5', // Background do WhatsApp
+        // backgroundColor: '#E5DDD5', // Background do WhatsApp - not supported
         logging: false,
-        windowWidth: targetWidth,
-        windowHeight: actualHeight,
-        onclone: (clonedDoc, clonedElement) => {
-          // Garantir que o clone mantenha as dimensões exatas
-          if (clonedElement) {
-            clonedElement.style.margin = '0';
-            clonedElement.style.padding = '0';
-            clonedElement.style.width = `${targetWidth}px`;
-            clonedElement.style.maxWidth = `${targetWidth}px`;
+        // windowWidth: targetWidth, // Not supported in current html2canvas version
+        // windowHeight: actualHeight, // Not supported in current html2canvas version
+        // onclone: (_clonedDoc: Document, clonedElement: HTMLElement) => {
+        //   // Garantir que o clone mantenha as dimensões exatas
+        //   if (clonedElement) {
+        //     clonedElement.style.margin = '0';
+        //     clonedElement.style.padding = '0';
+        //     clonedElement.style.width = `${targetWidth}px`;
+        //     clonedElement.style.maxWidth = `${targetWidth}px`;
 
-            // Remover scrollbars se houver
-            const messagesArea =
-              clonedElement.querySelector('.overflow-y-auto');
-            if (messagesArea instanceof HTMLElement) {
-              messagesArea.style.overflow = 'hidden';
-            }
+        //     // Remover scrollbars se houver
+        //     const messagesArea =
+        //       clonedElement.querySelector('.overflow-y-auto');
+        //     if (messagesArea instanceof HTMLElement) {
+        //       messagesArea.style.overflow = 'hidden';
+        //     }
 
-            // Ocultar botão de toggle sender (botão verde no MessageInput)
-            const toggleButton = clonedElement.querySelector(
-              '[data-sender-toggle]'
-            );
-            if (toggleButton instanceof HTMLElement) {
-              toggleButton.style.display = 'none';
-            }
+        //     // Ocultar botão de toggle sender (botão verde no MessageInput)
+        //     const toggleButton = clonedElement.querySelector(
+        //       '[data-sender-toggle]'
+        //     );
+        //     if (toggleButton instanceof HTMLElement) {
+        //       toggleButton.style.display = 'none';
+        //     }
 
-            // Ocultar texto indicador de sender (texto verde no MessageInput)
-            const senderIndicator = clonedElement.querySelector(
-              '[data-sender-indicator]'
-            );
-            if (senderIndicator instanceof HTMLElement) {
-              senderIndicator.style.display = 'none';
-            }
+        //     // Ocultar texto indicador de sender (texto verde no MessageInput)
+        //     const senderIndicator = clonedElement.querySelector(
+        //       '[data-sender-indicator]'
+        //     );
+        //     if (senderIndicator instanceof HTMLElement) {
+        //       senderIndicator.style.display = 'none';
+        //     }
 
-            // Garantir que o nome no header não seja cortado
-            const headerName = clonedElement.querySelector('.truncate');
-            if (headerName instanceof HTMLElement) {
-              headerName.style.overflow = 'visible';
-              headerName.style.textOverflow = 'initial';
-              headerName.style.whiteSpace = 'nowrap';
-            }
-          }
-        },
+        //     // Garantir que o nome no header não seja cortado
+        //     const headerName = clonedElement.querySelector('.truncate');
+        //     if (headerName instanceof HTMLElement) {
+        //       headerName.style.overflow = 'visible';
+        //       headerName.style.textOverflow = 'initial';
+        //       headerName.style.whiteSpace = 'nowrap';
+        //     }
+        //   }
+        // },
       });
 
       // Progress: 70% - Canvas gerado

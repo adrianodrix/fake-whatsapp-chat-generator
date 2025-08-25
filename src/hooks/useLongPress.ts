@@ -40,7 +40,7 @@ export const useLongPress = (
   const { threshold = 500, onStart, onFinish, onCancel } = options;
 
   const [isPressed, setIsPressed] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout>();
+  const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const start = useCallback(() => {
     if (timerRef.current) return;

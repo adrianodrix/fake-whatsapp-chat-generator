@@ -38,11 +38,14 @@ export const customMatchers = {
   },
 };
 
-// Extend Jest matchers
-declare module '@jest/expect' {
-  interface Matchers<R> {
-    toHaveWhatsAppStyling(): R;
-    toBeMessageBubble(): R;
+// Extend Jest matchers - using global to avoid module resolution issues
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace jest {
+    interface Matchers<R> {
+      toHaveWhatsAppStyling(): R;
+      toBeMessageBubble(): R;
+    }
   }
 }
 

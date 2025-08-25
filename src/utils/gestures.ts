@@ -165,7 +165,9 @@ export const triggerHapticFeedback = (
 
     // Web Vibration API fallback
     if ('vibrate' in navigator) {
-      navigator.vibrate(50);
+      (navigator as unknown as { vibrate: (pattern: number) => void }).vibrate(
+        50
+      );
     }
   } catch (error) {
     // Silently fail on unsupported devices
@@ -195,7 +197,9 @@ export const isTouchDevice = (): boolean => {
   return (
     'ontouchstart' in window ||
     navigator.maxTouchPoints > 0 ||
-    navigator.msMaxTouchPoints > 0
+    ((navigator as unknown as { msMaxTouchPoints?: number }).msMaxTouchPoints &&
+      (navigator as unknown as { msMaxTouchPoints?: number })
+        .msMaxTouchPoints! > 0)
   );
 };
 

@@ -89,7 +89,7 @@ describe('useGestures', () => {
 
     const mockTouchEvent = {
       touches: [{ clientX: 100, clientY: 100 }],
-    } as React.TouchEvent;
+    } as unknown as React.TouchEvent;
 
     act(() => {
       result.current.onTouchStart(mockTouchEvent);
@@ -104,7 +104,7 @@ describe('useGestures', () => {
 
     const mockTouchEvent = {
       touches: [{ clientX: 100, clientY: 100 }],
-    } as React.TouchEvent;
+    } as unknown as React.TouchEvent;
 
     act(() => {
       result.current.onTouchStart(mockTouchEvent);
@@ -119,7 +119,7 @@ describe('useGestures', () => {
 
     const mockTouchEvent = {
       touches: [{ clientX: 150, clientY: 100 }],
-    } as React.TouchEvent;
+    } as unknown as React.TouchEvent;
 
     // Start gesture first
     act(() => {
@@ -141,7 +141,7 @@ describe('useGestures', () => {
     const mockTouchEvent = {
       touches: [{ clientX: 200, clientY: 100 }],
       changedTouches: [{ clientX: 200, clientY: 100 }],
-    } as React.TouchEvent;
+    } as unknown as React.TouchEvent;
 
     // Start gesture
     act(() => {
@@ -171,7 +171,7 @@ describe('useGestures', () => {
     const mockTouchEvent = {
       touches: [{ clientX: 100, clientY: 100 }],
       changedTouches: [{ clientX: 100, clientY: 100 }],
-    } as React.TouchEvent;
+    } as unknown as React.TouchEvent;
 
     act(() => {
       result.current.onTouchStart(mockTouchEvent);
@@ -191,7 +191,7 @@ describe('useGestures', () => {
     const mockTouchEvent = {
       touches: [{ clientX: 100, clientY: 100 }],
       changedTouches: [{ clientX: 200, clientY: 100 }],
-    } as React.TouchEvent;
+    } as unknown as React.TouchEvent;
 
     act(() => {
       result.current.onTouchStart(mockTouchEvent);
@@ -216,12 +216,12 @@ describe('useGestures', () => {
 
     const mockStartEvent = {
       touches: [{ clientX: 100, clientY: 100 }],
-    } as React.TouchEvent;
+    } as unknown as React.TouchEvent;
 
     const mockMoveEvent = {
       touches: [{ clientX: 130, clientY: 100 }],
       preventDefault: jest.fn(),
-    } as React.TouchEvent;
+    } as unknown as React.TouchEvent;
 
     act(() => {
       result.current.onTouchStart(mockStartEvent);
@@ -247,11 +247,11 @@ describe('useGestures', () => {
 
     const mockStartEvent = {
       touches: [{ clientX: 100, clientY: 100 }],
-    } as React.TouchEvent;
+    } as unknown as React.TouchEvent;
 
     const mockMoveEvent = {
       touches: [{ clientX: 115, clientY: 100 }],
-    } as React.TouchEvent;
+    } as unknown as React.TouchEvent;
 
     act(() => {
       result.current.onTouchStart(mockStartEvent);
@@ -270,7 +270,7 @@ describe('useGestures', () => {
 
     const mockTouchEvent = {
       touches: [{ clientX: 100, clientY: 100 }],
-    } as React.TouchEvent;
+    } as unknown as React.TouchEvent;
 
     act(() => {
       result.current.onTouchStart(mockTouchEvent);
@@ -307,7 +307,7 @@ describe('useGestures', () => {
       const mockTouchEvent = {
         touches: [{ clientX: 100, clientY: 100 }],
         changedTouches: [{ clientX: 100, clientY: 100 }],
-      } as React.TouchEvent;
+      } as unknown as React.TouchEvent;
 
       act(() => {
         result.current.onTouchStart(mockTouchEvent);
@@ -347,7 +347,7 @@ describe('useSwipeToggle', () => {
     const mockTouchEvent = {
       touches: [{ clientX: 100, clientY: 100 }],
       changedTouches: [{ clientX: 200, clientY: 100 }],
-    } as React.TouchEvent;
+    } as unknown as React.TouchEvent;
 
     act(() => {
       result.current.onTouchStart(mockTouchEvent);
@@ -376,7 +376,7 @@ describe('useLongPressConfig', () => {
 
     const mockTouchEvent = {
       touches: [{ clientX: 100, clientY: 100 }],
-    } as React.TouchEvent;
+    } as unknown as React.TouchEvent;
 
     act(() => {
       result.current.onTouchStart(mockTouchEvent);

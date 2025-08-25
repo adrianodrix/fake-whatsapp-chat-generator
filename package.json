@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:analyze": "npm run build && vite-bundle-analyzer dist/stats.html",
+    "build:analyze": "VITE_BUNDLE_ANALYZER=true npm run build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext ts,tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,css,md}\"",
@@ -14,7 +14,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:performance": "jest --testPathPattern=performance",
+    "test:performance": "jest --testPathPatterns=performance",
     "lhci:collect": "lhci collect",
     "lhci:upload": "lhci upload",
     "lhci:assert": "lhci assert",
@@ -25,6 +25,8 @@
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.16",
+    "@sentry/react": "^10.5.0",
+    "@sentry/vite-plugin": "^4.1.1",
     "html2canvas": "^1.4.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

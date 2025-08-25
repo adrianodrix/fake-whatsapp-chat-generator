@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Message, MessageStatus } from '../types/message';
-import { Profile } from '../types/profile';
+import type { Message, MessageStatus } from '../types/message';
+import type { Profile } from '../types/profile';
 
 // Mock data factories for consistent test data
 export const createMockMessage = (
@@ -26,12 +26,9 @@ export const createMockProfile = (
   const defaultProfile: Profile = {
     id: uuidv4(),
     name: 'Test User',
-    phone: '+1234567890',
     avatar: '',
-    isActive: true,
-    lastSeen: new Date('2025-01-01T12:00:00'),
-    createdAt: new Date('2025-01-01T12:00:00'),
-    updatedAt: new Date('2025-01-01T12:00:00'),
+    initials: 'TU',
+    isOnline: true,
   };
 
   return { ...defaultProfile, ...overrides };
