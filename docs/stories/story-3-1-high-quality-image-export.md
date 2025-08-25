@@ -215,7 +215,139 @@ export interface ExportModalState {
 - Firefox 88+: Full support
 - Edge 90+: Full support
 
+## Dev Agent Record
+
+### Tasks
+
+- [x] Criar ExportButton component no ChatHeader
+- [x] Criar ExportModal component com 3 presets de qualidade
+- [x] Integrar ExportModal com ChatExporter existente
+- [x] Implementar preview de imagem no modal
+- [x] Adicionar progress indicator para exports grandes
+- [x] Implementar download automático com timestamp
+- [x] Escrever testes unitários para ExportButton
+- [x] Escrever testes unitários para ExportModal
+- [x] Escrever testes de integração para fluxo completo
+
+### File List
+
+**Created:**
+
+- `src/components/chat/ExportButton/ExportButton.tsx`
+- `src/components/chat/ExportButton/ExportButton.types.ts`
+- `src/components/chat/ExportButton/ExportButton.test.tsx`
+- `src/components/chat/ExportButton/index.ts`
+- `src/components/modals/ExportModal/ExportModal.tsx`
+- `src/components/modals/ExportModal/ExportModal.types.ts`
+- `src/components/modals/ExportModal/ExportModal.test.tsx`
+- `src/components/modals/ExportModal/index.ts`
+- `src/components/ui/ProgressBar/ProgressBar.tsx`
+- `src/components/ui/ProgressBar/ProgressBar.types.ts`
+- `src/components/ui/ProgressBar/index.ts`
+- `src/types/export.types.ts`
+- `tests/integration/export.test.tsx`
+
+**Modified:**
+
+- `src/components/chat/ChatHeader/ChatHeader.tsx`
+- `src/components/chat/ChatHeader/ChatHeader.types.ts`
+- `src/components/chat/ChatContainer/ChatContainer.tsx`
+- `src/utils/export.ts`
+
+### Change Log
+
+1. Criado ExportButton component com ícone de download e acessibilidade
+2. Implementado ExportModal com 3 presets de qualidade (low/medium/high)
+3. Integrado botão de export no ChatHeader com prop onExport
+4. Adicionado state management para modal no ChatContainer
+5. Criado interfaces TypeScript em export.types.ts
+6. Implementado preview generation com ChatExporter existente
+7. Adicionado progress callback no ChatExporter
+8. Criado ProgressBar component para feedback visual
+9. Implementado download automático com timestamp formatado
+10. Adicionados testes unitários para componentes
+11. Criados testes de integração para fluxo completo
+12. **Corrigidos erros de runtime** com imports/exports TypeScript
+13. **Integrado html2canvas** para captura precisa do DOM
+14. **Resolvido problema de imagens em branco** substituindo canvas manual
+15. **Otimizado para aparência mobile** com larguras de iPhone (375px/428px)
+16. **Implementado qualidade retina** com scale 2x automático
+17. **Adicionados data attributes** para controle de elementos no export
+18. **Ocultação inteligente de UI** - botão sender e texto indicator
+19. **Corrigido truncamento** do nome do contato no header
+20. **Removido espaço lateral vazio** com dimensões fixas otimizadas
+21. **Ajustado trimCanvas** para remoção automática de espaços desnecessários
+
+### Completion Notes
+
+- **Feature totalmente implementada** seguindo a arquitetura existente
+- **Integração html2canvas** resolveu problemas de captura e qualidade
+- **Modal responsivo** com 3 presets funcionando perfeitamente
+- **Export realístico** - aparência idêntica a screenshots mobile reais do WhatsApp
+- **Otimizações visuais**:
+  - Elementos de UI ocultos automaticamente durante export
+  - Dimensões mobile otimizadas (375px iPhone, 428px iPhone Pro)
+  - Qualidade retina com scale 2x
+  - Remoção inteligente de espaços vazios
+- **Robustez técnica**: erros de runtime corrigidos, imports TypeScript organizados
+- **UX aprimorada**: preview instantâneo, download automático, progress feedback
+- **Código production-ready** seguindo padrões estabelecidos
+
+### Problemas Resolvidos Durante Implementação
+
+#### 1. Erros de Runtime TypeScript
+
+**Problema**: `Uncaught SyntaxError: The requested module does not provide an export named 'ExportModalState'`
+**Solução**: Separação de imports de tipo vs valor:
+
+```typescript
+import type { ExportModalState, ExportOptions } from '@/types/export.types';
+```
+
+#### 2. Imagens de Export em Branco
+
+**Problema**: Canvas manual gerava imagens vazias
+**Solução**: Migração para html2canvas para captura precisa do DOM:
+
+```typescript
+const canvas = await html2canvas(element, {
+  scale: 2,
+  backgroundColor: '#E5DDD5',
+  useCORS: true,
+});
+```
+
+#### 3. Aparência Não-Mobile dos Exports
+
+**Problema**: Exports pareciam capturas de desktop
+**Solução**: Dimensões fixas mobile e escala otimizada:
+
+```typescript
+const targetWidth = isMobileWidth ? 375 : Math.min(rect.width, 428);
+```
+
+#### 4. Elementos de UI Indesejados no Export
+
+**Problema**: Botões e textos de controle apareciam no export
+**Solução**: Data attributes e ocultação seletiva:
+
+```typescript
+// No MessageInput
+<button data-sender-toggle="true" ...>
+<span data-sender-indicator="true" ...>
+
+// No html2canvas onclone
+toggleButton.style.display = 'none';
+senderIndicator.style.display = 'none';
+```
+
+### Status
+
+**✅ COMPLETED** - Production Ready
+
 ---
 
 _Epic 3: Export & Polish_  
-_Story 3.1 revisada pelo John (PM) - 22/08/2025_
+_Story 3.1 revisada pelo John (PM) - 22/08/2025_  
+_Implementada por James (Dev) - 22/08/2025_  
+_Refinada e finalizada - 25/08/2025_
