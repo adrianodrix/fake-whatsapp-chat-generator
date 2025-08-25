@@ -6,7 +6,7 @@ import { MessageEditPopover } from '../MessageEditPopover';
 import { MessageInput } from '../MessageInput';
 import { DateSeparator } from '../DateSeparator';
 import { ExportModal } from '../../modals/ExportModal';
-import { useMessageEdit } from '@/hooks';
+import { useMessageEdit, useIsMobile, useKeyboardAware } from '@/hooks';
 import { groupMessagesByDate } from '@/utils/formatting';
 
 /**
@@ -26,9 +26,18 @@ export const ChatContainer: React.FC<ChatContainerProps> = memo(
     loading = false,
   }) => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const chatContainerRef = useRef<HTMLDivElement>(null);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const { editingState, startEdit, cancelEdit, saveEdit, isEditing } =
       useMessageEdit();
+
+    // Mobile optimization hooks
+    const isMobile = useIsMobile(768);
+    const { isKeyboardVisible, adjustedViewportHeight } = useKeyboardAware({
+      targetRef: chatContainerRef as React.RefObject<HTMLElement>,
+      offset: 16,
+      enabled: isMobile,
+    });
 
     // Group messages by date for date separators
     const groupedMessages = useMemo(() => {
@@ -51,9 +60,18 @@ export const ChatContainer: React.FC<ChatContainerProps> = memo(
     return (
       <>
         <div
+          ref={chatContainerRef}
           id="chat-container"
-          className="flex flex-col h-full relative"
-          style={{ backgroundColor: '#E5DDD5' }}
+          className={`flex flex-col relative touch-manipulation overscroll-contain ${
+            isMobile ? 'h-screen-safe safe-area-inset' : 'h-full'
+          }`}
+          style={{
+            backgroundColor: '#E5DDD5',
+            height:
+              isMobile && isKeyboardVisible
+                ? `${adjustedViewportHeight}px`
+                : undefined,
+          }}
         >
           {/* Header */}
           <ChatHeader
@@ -64,7 +82,11 @@ export const ChatContainer: React.FC<ChatContainerProps> = memo(
           />
 
           {/* Messages area */}
-          <div className="flex-1 overflow-y-auto px-3 py-2 relative">
+          <div
+            className={`flex-1 overflow-y-auto relative ${
+              isMobile ? 'px-2 py-1' : 'px-3 py-2'
+            }`}
+          >
             {/* Messages */}
             <div className="relative z-10 space-y-1">
               {messages.length === 0 ? (

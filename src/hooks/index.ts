@@ -2,6 +2,7 @@ export { useChat } from './useChat';
 export { useClickOutside } from './useClickOutside';
 export { useDebounce } from './useDebounce';
 export { useIsMobile } from './useIsMobile';
+export { useKeyboardAware } from './useKeyboardAware';
 export { useLongPress } from './useLongPress';
 export { useMessageEdit } from './useMessageEdit';
 export { usePerformanceMonitor } from './usePerformanceMonitor';
