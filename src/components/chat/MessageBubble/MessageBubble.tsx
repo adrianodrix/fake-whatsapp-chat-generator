@@ -119,7 +119,9 @@ export const MessageBubble: React.FC<MessageBubbleProps> = memo(
     };
 
     const bubbleClasses = `
-    max-w-bubble p-3 shadow-sm relative group
+    ${isMobile ? 'max-w-bubble-mobile' : 'max-w-bubble'} 
+    ${isMobile ? 'p-2.5' : 'p-3'} 
+    shadow-sm relative group min-h-touch touch-manipulation
     ${isUser ? 'bg-wa-bubble-sent' : 'bg-wa-bubble-received'}
     ${getBorderRadius()}
     ${isEditing ? 'ring-2 ring-wa-accent' : ''}
@@ -134,7 +136,16 @@ export const MessageBubble: React.FC<MessageBubbleProps> = memo(
         <div
           ref={bubbleRef}
           className={bubbleClasses}
-          {...(isMobile && onEdit ? longPressHandlers : {})}
+          {...(isMobile && onEdit
+            ? {
+                onMouseDown: longPressHandlers.onMouseDown,
+                onMouseUp: longPressHandlers.onMouseUp,
+                onMouseLeave: longPressHandlers.onMouseLeave,
+                onTouchStart: longPressHandlers.onTouchStart,
+                onTouchEnd: longPressHandlers.onTouchEnd,
+                onTouchMove: longPressHandlers.onTouchMove,
+              }
+            : {})}
         >
           <div className="break-words">
             <p className="text-wa-text-primary text-sm leading-relaxed mb-1 whitespace-pre-wrap">

@@ -76,15 +76,24 @@ export const MessageInput: React.FC<MessageInputProps> = memo(
       value.length > 4096 ? 'text-red-500' : 'text-wa-text-secondary';
 
     return (
-      <div className="bg-wa-bg-pattern p-3 border-t border-gray-200">
-        <div className="flex items-end gap-3 max-w-4xl mx-auto">
+      <div
+        className={`bg-wa-bg-pattern border-t border-gray-200 ${
+          isMobile ? 'p-2 safe-bottom' : 'p-3'
+        }`}
+      >
+        <div
+          className={`flex items-end max-w-4xl mx-auto ${
+            isMobile ? 'gap-2' : 'gap-3'
+          }`}
+        >
           {/* Sender toggle button */}
           <button
             onClick={onSenderToggle}
             data-sender-toggle="true"
             className={`
-            flex-shrink-0 p-2 rounded-full transition-colors
-            ${senderColor} hover:bg-gray-100
+            flex-shrink-0 ${isMobile ? 'p-2.5 min-w-touch min-h-touch' : 'p-2'} 
+            rounded-full transition-colors touch-manipulation
+            ${senderColor} hover:bg-gray-100 active:bg-gray-200
           `}
             aria-label={`Enviar como ${activeSender === 'user' ? 'você' : 'contato'}`}
             disabled={disabled}
@@ -107,7 +116,8 @@ export const MessageInput: React.FC<MessageInputProps> = memo(
             <div className="flex items-end relative">
               {/* Emoji button */}
               <button
-                className="flex-shrink-0 p-3 text-wa-text-secondary hover:text-wa-text-primary transition-colors"
+                className={`flex-shrink-0 ${isMobile ? 'p-2.5 min-w-touch min-h-touch' : 'p-3'} 
+                text-wa-text-secondary hover:text-wa-text-primary transition-colors touch-manipulation`}
                 aria-label="Emojis"
                 disabled={disabled}
               >
@@ -133,17 +143,19 @@ export const MessageInput: React.FC<MessageInputProps> = memo(
                 placeholder={placeholder}
                 disabled={disabled}
                 rows={1}
-                className="
-                flex-1 px-3 py-3 text-wa-text-primary placeholder-wa-text-secondary
+                className={`
+                flex-1 ${isMobile ? 'px-2.5 py-2.5' : 'px-3 py-3'} 
+                text-wa-text-primary placeholder-wa-text-secondary
                 resize-none outline-none bg-transparent
-                max-h-30 min-h-[24px]
-              "
+                ${isMobile ? 'max-h-24 text-base' : 'max-h-30 text-sm'} min-h-[24px]
+              `}
                 style={{ lineHeight: '1.5' }}
               />
 
               {/* Attachment button */}
               <button
-                className="flex-shrink-0 p-3 text-wa-text-secondary hover:text-wa-text-primary transition-colors"
+                className={`flex-shrink-0 ${isMobile ? 'p-2.5 min-w-touch min-h-touch' : 'p-3'} 
+                text-wa-text-secondary hover:text-wa-text-primary transition-colors touch-manipulation`}
                 aria-label="Anexar"
                 disabled={disabled}
               >
@@ -177,10 +189,11 @@ export const MessageInput: React.FC<MessageInputProps> = memo(
               onClick={handleSend}
               disabled={!value.trim() || disabled || !!validationError}
               className={`
-              flex-shrink-0 p-3 rounded-full transition-all
+              flex-shrink-0 ${isMobile ? 'p-2.5 min-w-touch min-h-touch' : 'p-3'} 
+              rounded-full transition-all touch-manipulation
               ${
                 value.trim() && !disabled && !validationError
-                  ? 'bg-wa-accent text-white hover:bg-wa-secondary shadow-md'
+                  ? 'bg-wa-accent text-white hover:bg-wa-secondary active:bg-wa-primary shadow-md'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               }
             `}
