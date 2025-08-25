@@ -41,11 +41,14 @@ export default {
   globals: {
     'import.meta': {
       env: {
-        DEV: false,
+        DEV: true,
         PROD: false,
         MODE: 'test',
         VITE_SENTRY_DSN: '',
         VITE_APP_VERSION: '1.0.0',
+        VITE_ANALYTICS_ENABLED: 'true',
+        VITE_ANALYTICS_ENDPOINT: '',
+        VITE_DEMO_MODE: 'true',
       },
     },
   },

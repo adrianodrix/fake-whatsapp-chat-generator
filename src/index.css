@@ -32,3 +32,73 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+/* Visual Indicators for Interactive Elements */
+@layer components {
+  /* Editable areas */
+  .editable-area {
+    @apply transition-all duration-150 cursor-text;
+  }
+
+  .editable-area:hover {
+    @apply bg-black/[0.02] rounded-md;
+  }
+
+  .editable-area:focus-within {
+    @apply bg-black/[0.03] rounded-md ring-2 ring-wa-accent/30;
+  }
+
+  /* Clickable areas */
+  .clickable-area {
+    @apply transition-all duration-150 cursor-pointer;
+  }
+
+  .clickable-area:hover {
+    @apply bg-black/[0.04] rounded-md;
+  }
+
+  .clickable-area:active {
+    @apply scale-[0.98];
+  }
+
+  /* Message bubbles interactivity */
+  .message-bubble {
+    @apply transition-all duration-150;
+  }
+
+  .message-bubble:hover {
+    @apply shadow-sm cursor-text;
+  }
+
+  .message-bubble.editing {
+    @apply ring-2 ring-wa-accent shadow-md;
+  }
+
+  /* Button hover states */
+  .interactive-button {
+    @apply transition-all duration-150;
+  }
+
+  .interactive-button:hover:not(:disabled) {
+    @apply shadow-md transform -translate-y-0.5;
+  }
+
+  .interactive-button:active:not(:disabled) {
+    @apply shadow-sm transform translate-y-0;
+  }
+
+  .interactive-button:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+}
+
+/* Keyboard focus indicators */
+@layer utilities {
+  .focus-visible-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wa-accent focus-visible:ring-offset-2;
+  }
+
+  .keyboard-navigation * {
+    @apply focus-visible-ring;
+  }
+}

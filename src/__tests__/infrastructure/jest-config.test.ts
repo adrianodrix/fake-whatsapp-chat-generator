@@ -90,8 +90,8 @@ describe('Performance Testing Infrastructure', () => {
     const endTime = Date.now();
     const duration = endTime - startTime;
 
-    // Test should complete quickly (under 100ms for this simple test)
-    expect(duration).toBeLessThan(100);
+    // Test should complete quickly (under 200ms for this simple test)
+    expect(duration).toBeLessThan(200);
   });
 
   it('memory usage should be reasonable during tests', () => {

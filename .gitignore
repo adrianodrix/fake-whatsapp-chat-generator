@@ -103,3 +103,5 @@ pids
 # TernJS port file
 .tern-port
 .env.development
+coverage/
+.env.development
