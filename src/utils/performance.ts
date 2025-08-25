@@ -153,7 +153,6 @@ export const isDevelopment = (): boolean => {
   // Em browser com Vite
   if (typeof window !== 'undefined') {
     try {
-      // @ts-expect-error - import.meta pode não existir
       // Em desenvolvimento, não conseguimos acessar import.meta.env em Jest
       // Assumir que está em desenvolvimento se window existe mas import.meta falha
       return true;
@@ -177,7 +176,6 @@ export const isPerformanceMonitoringEnabled = (): boolean => {
   // Em browser com Vite
   if (typeof window !== 'undefined') {
     try {
-      // @ts-expect-error - import.meta pode não existir
       // Em desenvolvimento, não conseguimos acessar import.meta.env em Jest
       // Assumir monitoring ativo se window existe mas import.meta falha
       return true;

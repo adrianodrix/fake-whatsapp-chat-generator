@@ -47,15 +47,12 @@ export const initializeSentry = () => {
       integrations: [
         Sentry.browserTracingIntegration(),
         Sentry.replayIntegration({
-          // Capture 10% of all sessions,
-          // plus 100% of sessions with an error
-          sampleRate: 0.1,
-          errorSampleRate: 1.0,
+          // Using default configuration - options moved to init level
         }),
       ],
       tracesSampleRate: 0.1,
-      replaysSessionSampleRate: 0.1,
-      replaysOnErrorSampleRate: 1.0,
+      replaysSessionSampleRate: 0.1, // 10% of normal sessions
+      replaysOnErrorSampleRate: 1.0, // 100% of error sessions
 
       beforeSend(event) {
         // Filtrar erros conhecidos e não importantes

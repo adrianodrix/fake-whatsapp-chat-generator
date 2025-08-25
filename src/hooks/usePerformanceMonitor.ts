@@ -37,7 +37,7 @@ export const usePerformanceMonitor = (componentName: string) => {
 
   // Callback para React Profiler
   const onRenderCallback = useCallback(
-    (id: string, phase: 'mount' | 'update', actualDuration: number) => {
+    (_id: string, phase: 'mount' | 'update', actualDuration: number) => {
       // Só ativar em desenvolvimento com flag
       if (!isDevelopment() || !isPerformanceMonitoringEnabled()) {
         return;
